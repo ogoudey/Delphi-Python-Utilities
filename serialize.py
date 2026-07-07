@@ -107,15 +107,15 @@ class TaskAnnotation:
 @dataclass
 class Episode:
     """All raw data for one recording session."""
-    video_paths: List[Path]                    # path to the .mp4; actual decoding deferred to Part II
+    video_paths: List[Path]
     tasks: List[TaskAnnotation]
     state: pd.DataFrame                 # full joint CSV, timestamp-indexed
 
 @dataclass
 class Segment:
     """One task's worth of data sliced out of an Episode."""
-    video_paths: List[Path]                    # same source file; trim times given separately
-    video_start_time: float             # seconds — use to trim in Part II
+    video_paths: List[Path]                    # same source file
+    video_start_time: float
     video_end_time: float
     task: str
     state: pd.DataFrame                 # joint rows whose timestamp falls in [start, end]
@@ -128,8 +128,7 @@ class Segment:
 
 # ISO-8601 timestamps in the CSV look like "2026-03-27T21:16:31.279Z".
 # We convert them to seconds-since-epoch (UTC) so they're comparable to the
-# float times in tasks.json.  If your tasks.json already uses the same ISO
-# strings you can adapt _parse_task_time() below instead.
+# float times in tasks.json.
 
 def _iso_to_epoch(ts: str) -> float:
     """'2026-03-27T21:16:31.279Z'  →  float seconds since Unix epoch (UTC)."""
@@ -139,10 +138,8 @@ def _iso_to_epoch(ts: str) -> float:
 def _parse_task_time(raw: float | str) -> float:
     """
     tasks.json can store times as:
-      • a plain float (Unix epoch seconds)  →  returned as-is
-      • an ISO-8601 string                  →  converted to epoch seconds
-
-    Extend this function if your JSON uses a different convention.
+      - a plain float (Unix epoch seconds)
+      - an ISO-8601 string
     """
     if isinstance(raw, str): # If it's Unix epoch seconds
         return _iso_to_epoch(raw)
@@ -257,10 +254,10 @@ class EpisodeProcessor:
         Slice an Episode into one Segment per TaskAnnotation.
 
         Each Segment carries:
-        • the path to the source video (trimming happens in Part II)
-        • the wall-clock window [video_start_time, video_end_time]
-        • the subset of joint rows whose epoch_time falls within that window
-        • the single task annotation string
+        - the path to the source video (trimming happens in Part II)
+        - the wall-clock window [video_start_time, video_end_time]
+        - the subset of joint rows whose epoch_time falls within that window
+        - the single task annotation string
         """
         segments: List[Segment] = []
 
@@ -298,23 +295,22 @@ class EpisodeProcessor:
         fps: int = 30,
     ):
         """
-        Write a list of Segments to a LeRobotDataset v3.0 on disk.
+        Write a list of Segments to a LeRobotDataset on disk.
  
         Each Segment becomes one LeRobot episode.  Video frames are decoded
         from the source .mp4 via PyAV, trimmed to [video_start_time,
         video_end_time], and re-encoded by LeRobot.
  
         Args:
-            segments:     output of segment() / process()
-            repo_id:      HuggingFace-style repo id, e.g. "myorg/myrobot"
+            segments:     List of segments
+            repo_id:      HuggingFace-style repo id, e.g. "local/datasetname", "labyrinthai/ourfirstupload"
             output_path:  local root directory for the dataset
-            fps:          target frame-rate for the LeRobot dataset
-            robot_type:   free-form string stored in dataset metadata
+            fps:          target frame-rate for the LeRobot dataset (30)
  
         Returns:
             LeRobotDataset (finalised, ready for push_to_hub or local use)
         """
-        sys.path.append("/home/olin/Robotics/LeRobot/lerobot")
+        sys.path.append("/home/olin/Robotics/LeRobot/lerobot") # This links to a lerobot package, which is often local
 
         from lerobot.datasets.lerobot_dataset import LeRobotDataset
  
@@ -400,10 +396,8 @@ class EpisodeProcessor:
 
             dataset.save_episode()
  
-        # dataset.finalize() # need?
+        # dataset.finalize() # v3.1 thing...
         return dataset
-
-
 
 if __name__ == "__main__":
     import sys
