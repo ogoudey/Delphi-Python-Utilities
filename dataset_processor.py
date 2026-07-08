@@ -456,20 +456,28 @@ class DatasetProcessor:
                     seg_epoch_times = seg.state["epoch_time"].to_numpy()
                     frame_times = seg.video_start_time + np.arange(n_frames) / self.out.fps
 
-                    for i, t in enumerate(frame_times):
+                    # First pass: resolve the state vector for every frame in this segment.
+                    frame_states = []
+                    for t in frame_times:
                         row_idx = int(np.argmin(np.abs(seg_epoch_times - t)))
-                        state_vec = state_matrix[row_idx]
+                        frame_states.append(state_matrix[row_idx])
+
+                    # Second pass: essentially action[t] = state[t+1], last frame pads with its own state.
+                    for i in range(n_frames):
+                        state_vec = frame_states[i]
+                        action_vec = frame_states[i + 1] if i + 1 < n_frames else frame_states[i]
 
                         self.output_dataset.add_frame(
                             {
                                 "observation.state": state_vec,
-                                "action": state_vec,
+                                "action": action_vec,
                                 **{f"observation.images.{cam}": frames[i] for cam, frames in all_frames.items()},
                             },
                             task=seg.task,
                         )
 
                     self.output_dataset.save_episode()
+
                 print(f"Produced {len(segments)} segment(s):\n")
                 for i, seg in enumerate(segments):
                     print(
