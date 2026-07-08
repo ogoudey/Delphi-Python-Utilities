@@ -119,7 +119,7 @@ class V3_Delphi27(DelphiDataExpectation):
 class OutputConfig:
     fps = 30
     merge_handedness_with_joint_name = False # overriden
-    pass
+    use_first_person = True
 """
     robot_type: str
 """
@@ -256,7 +256,7 @@ def _segment_video_by_task(episode: Episode) -> List[Segment]:
                     video_paths=episode.video_paths,
                     video_start_time=task.start_time,
                     video_end_time=task.end_time,
-                    task=task.annotation,
+                    task=task.annotation, # here is where we'd want to edit the annotation
                     state=state_slice,
                 )
             )
@@ -330,9 +330,6 @@ class DatasetProcessor:
         # Flatten MultiIndex columns: ("PositionX", "shoulder_pan_joint") → "shoulder_pan_joint/PositionX"
         state.columns = [f"{joint}/{field}" for field, joint in state.columns]
         state = state.sort_index().reset_index()
-
-        # TODO: At some point in this, I'd like to not output resulting rows with these joints: `data_keys_to_exclude`. As in, that data's no good - remove them.
-
 
         video_paths = []        
         for video_filename in self.cfg.video_filenames:
