@@ -191,6 +191,11 @@ def _parse_task_time(raw: float | str) -> float:
         return _iso_to_epoch(raw)
     return float(raw)
 
+def _video_shape(video_path: Path) -> tuple:
+    with av.open(str(video_path)) as container:
+        stream = container.streams.video[0]
+        return (stream.height, stream.width, 3)
+
 def _decode_video_segment(
     video_path: Path,
     start_epoch: float,
@@ -373,7 +378,7 @@ class DatasetProcessor:
                     **{
                         f"observation.images.{cam}": {
                             "dtype": "video",
-                            "shape": (480, 640, 3),
+                            "shape": _video_shape(representative_segment.video_paths[0]), # assumes only one camera again
                             "names": ["height", "width", "channel"],
                         }
                         for cam in camera_names
