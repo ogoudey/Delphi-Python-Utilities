@@ -13,7 +13,7 @@ from PIL import Image
 
 @dataclass
 class DelphiDataExpectation:
-    use_episode_uuid_as_filename = False
+    use_episode_uuid_as_file_stem = False
     pass
 """
     tasks_filename      : str
@@ -91,10 +91,10 @@ class V2_Delphi27(DelphiDataExpectation):
 
 class V3_Delphi27(DelphiDataExpectation):
     # --- File names ----------------------------------------------------------
-    use_episode_uuid_as_filename = True
-    tasks_filename      = "*.json"
-    joints_filename     = "*.csv"
-    video_filenames      = ["*.mp4"]
+    use_episode_uuid_as_file_stem = True
+    tasks_filename      = ".json"
+    joints_filename     = ".csv"
+    video_filenames      = [".mp4"]
 
     # --- tasks.json keys -----------------------------------------------------
     task_start_key      = "startTime"
@@ -117,7 +117,8 @@ class V3_Delphi27(DelphiDataExpectation):
 
 @dataclass
 class OutputConfig:
-    fps = 30.0
+    fps = 30
+    merge_handedness_with_joint_name = False # overriden
     pass
 """
     robot_type: str
@@ -127,14 +128,17 @@ class OutputConfig:
 
 
 
-class EgoCentricUR5OverlayV1LeRobot27(OutputConfig):
+class EgoCentricUR5OverlayV1LeRobot21(OutputConfig):
     version = 21
     robot_type = "ur5_overlay"
 
-class EgoCentricNoOverlayLeRobot27(OutputConfig):
+class EgoCentricNoOverlayLeRobot21(OutputConfig):
     version = 21
     robot_type = "human"
+    camera_name = "head" # Just one camera - bound to fail later
+    merge_handedness_with_joint_name = True
     data_keys_to_exclude = ["base", "shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"]
+    
 
 class EgoCentricNoOverlayLeRobot31(OutputConfig):
     version = 31
@@ -262,19 +266,20 @@ def _segment_video_by_task(episode: Episode) -> List[Segment]:
 
 # Processor class
 
-class EpisodeProcessor:
+class DatasetProcessor:
     cfg: DelphiDataExpectation
     out: OutputConfig
     def __init__(self, dde: DelphiDataExpectation, out: OutputConfig):
         self.cfg = dde
         self.out = out
+        
+        self.output_dataset = None
 
-    def serialize(self, episode_path: Path) -> Episode:
+    def deserialize(self, episode_path: Path) -> Episode:
         episode_path = Path(episode_path)
 
         # --- tasks.json ----------------------------------------------------------
-        print(f"tasks {episode_path.resolve()}")
-        tasks_file = episode_path / self.cfg.tasks_filename.replace("*", episode_path.stem) if self.cfg.use_episode_uuid_as_filename else episode_path / self.cfg.tasks_filename 
+        tasks_file = episode_path.with_suffix(self.cfg.tasks_filename) if self.cfg.use_episode_uuid_as_file_stem else episode_path / self.cfg.tasks_filename 
         with tasks_file.open() as f:
             raw_tasks = json.load(f)
 
@@ -287,7 +292,7 @@ class EpisodeProcessor:
             for t in raw_tasks
         ]
 
-        joints_file = episode_path / self.cfg.joints_filename.replace("*", episode_path.stem) if self.cfg.use_episode_uuid_as_filename else episode_path / self.cfg.joints_filename
+        joints_file = episode_path.with_suffix(self.cfg.joints_filename) if self.cfg.use_episode_uuid_as_file_stem else episode_path / self.cfg.joints_filename
         state = pd.read_csv(joints_file)
         state.columns = state.columns.str.strip()
         state["epoch_time"] = state[self.cfg.joints_timestamp_col].apply(_iso_to_epoch)
@@ -297,9 +302,23 @@ class EpisodeProcessor:
         state["epoch_time"] -= state["epoch_time"].iloc[0]
 
         # Exclude undesired data
-        if self.cfg.data_keys_to_exclude:
-            state = state[~state[self.cfg.joints_joint_col].isin(self.cfg.data_keys_to_exclude)]
+        if self.out.data_keys_to_exclude:
+            state = state[~state[self.cfg.joints_joint_col].isin(self.out.data_keys_to_exclude)]
+        
+        
+        
+        if self.out.merge_handedness_with_joint_name:
+            # e.g. source="right", joint="Wrist" -> joint="RightWrist"
 
+            source = state[self.cfg.joints_source_col].str.strip().str.lower()
+            is_handed = source.isin(["right", "left"])
+
+            state[self.cfg.joints_joint_col] = np.where(
+                is_handed,
+                source.str.capitalize() + state[self.cfg.joints_joint_col].str.strip(),
+                state[self.cfg.joints_joint_col]
+            )
+        
         # Pivot: one row per timestamp, one column per (joint, field)
         state = state.pivot_table(
             index="epoch_time",
@@ -317,7 +336,7 @@ class EpisodeProcessor:
 
         video_paths = []        
         for video_filename in self.cfg.video_filenames:
-            video_path = episode_path / self.cfg.video_filename.replace("*", episode_path.stem) if self.cfg.use_episode_uuid_as_filename else episode_path / video_filename
+            video_path = episode_path.with_suffix(video_filename) if self.cfg.use_episode_uuid_as_file_stem else episode_path / video_filename
             if not video_path.exists():
                 raise FileNotFoundError(f"Expected video at {video_path}")
             video_paths.append(video_path)
@@ -330,46 +349,18 @@ class EpisodeProcessor:
 
     
 
-
-    
-
-    def write_lerobot_dataset(self,
-        episode: Episode,
-        repo_id: str,
-        output_path: str | Path
-
-    ):
-        """
-        Write a list of Segments to a LeRobotDataset on disk.
- 
-        Each Segment becomes one LeRobot episode.  Video frames are decoded
-        from the source .mp4 via PyAV, trimmed to [video_start_time,
-        video_end_time], and re-encoded by LeRobot.
- 
-        Args:
-            segments:     List of segments
-            repo_id:      HuggingFace-style repo id, e.g. "local/datasetname", "labyrinthai/ourfirstupload"
-            output_path:  local root directory for the dataset
-            fps:          target frame-rate for the LeRobot dataset (30)
- 
-        Returns:
-            LeRobotDataset (finalised, ready for push_to_hub or local use)
-        """
+    def create_lerobot_dataset(self, representative_segment: Segment, repo_id: str, output_path: Path):
         sys.path.append("/home/olin/Robotics/Projects/lerobot") # This links to a lerobot package, which is often local
-
         from lerobot.datasets.lerobot_dataset import LeRobotDataset
- 
-        output_path = Path(output_path)
- 
+        
         match self.out.version:
             case 21:
-                segments = _segment_video_by_task(episode)
 
                 # Build the features schema from the first segment's state columns
-                state_cols = [c for c in segments[0].state.columns if c != "epoch_time"]
+                state_cols = [c for c in representative_segment.state.columns if c != "epoch_time"]
                 n_state = len(state_cols)
         
-                camera_names = [p.stem for p in segments[0].video_paths]
+                camera_names = [self.out.camera_name]#[p.stem for p in representative_segment.video_paths]
                 
                 features = {
                     "observation.state": {
@@ -391,10 +382,7 @@ class EpisodeProcessor:
                         for cam in camera_names
                     },
                 }
-        
-                
-
-                dataset = LeRobotDataset.create(
+                self.output_dataset = LeRobotDataset.create(
                     repo_id=repo_id,
                     root=output_path,
                     fps=self.out.fps,
@@ -402,6 +390,43 @@ class EpisodeProcessor:
                     features=features,
                     use_videos=True,
                 )
+            case 31:
+                pass
+            case _:
+                raise ValueError("Please specify in the output config a LeRobotDataset version (e.g 31 for v3.1). Supported: v3.1 and v2.1")
+
+    def write_to_lerobot_dataset(self,
+        episode: Episode,
+        repo_id: str,
+        output_path: str | Path
+
+    ):
+        """
+        Write a list of Segments to a LeRobotDataset on disk.
+ 
+        Each Segment becomes one LeRobot episode.  Video frames are decoded
+        from the source .mp4 via PyAV, trimmed to [video_start_time,
+        video_end_time], and re-encoded by LeRobot.
+ 
+        Args:
+            segments:     List of segments
+            repo_id:      HuggingFace-style repo id, e.g. "local/datasetname", "labyrinthai/ourfirstupload"
+            output_path:  local root directory for the dataset
+            fps:          target frame-rate for the LeRobot dataset (30)
+ 
+        Returns:
+            LeRobotDataset (finalised, ready for push_to_hub or local use)
+        """
+        
+ 
+        output_path = Path(output_path)
+ 
+        match self.out.version:
+            case 21:
+                segments = _segment_video_by_task(episode)
+
+                if not self.output_dataset:
+                    self.create_lerobot_dataset(representative_segment=segments[0], repo_id=repo_id, output_path=output_path) 
         
                 for seg in segments:
                     print(f"task: {seg.task}")
@@ -413,7 +438,7 @@ class EpisodeProcessor:
                 for seg in segments:
                     # Decode all cameras; key by camera name derived from filename stem
                     all_frames = {
-                        video_path.stem: _decode_video_segment(
+                        self.out.camera_name: _decode_video_segment( # key might want to be video_path.stem !! assumes one video!
                             video_path,
                             seg.video_start_time,
                             seg.video_end_time,
@@ -425,7 +450,8 @@ class EpisodeProcessor:
                     # Trim to shortest camera (guards against minor length mismatches)
                     n_frames = min(len(f) for f in all_frames.values())
                     all_frames = {k: v[:n_frames] for k, v in all_frames.items()}
-
+                    
+                    state_cols = [c for c in segments[0].state.columns if c != "epoch_time"]
                     state_matrix = seg.state[state_cols].to_numpy(dtype=np.float32)
                     seg_epoch_times = seg.state["epoch_time"].to_numpy()
                     frame_times = seg.video_start_time + np.arange(n_frames) / self.out.fps
@@ -434,7 +460,7 @@ class EpisodeProcessor:
                         row_idx = int(np.argmin(np.abs(seg_epoch_times - t)))
                         state_vec = state_matrix[row_idx]
 
-                        dataset.add_frame(
+                        self.output_dataset.add_frame(
                             {
                                 "observation.state": state_vec,
                                 "action": state_vec,
@@ -443,7 +469,7 @@ class EpisodeProcessor:
                             task=seg.task,
                         )
 
-                    dataset.save_episode()
+                    self.output_dataset.save_episode()
                 print(f"Produced {len(segments)} segment(s):\n")
                 for i, seg in enumerate(segments):
                     print(
@@ -451,27 +477,20 @@ class EpisodeProcessor:
                         f"       time  : {seg.video_start_time:.3f} → {seg.video_end_time:.3f} s\n"
                         f"       joints: {len(seg.state)} rows\n")
             case 31:
-                pass
+                self.output_dataset.finalize() # v3.1 thing...
             case _:
                 raise ValueError("Please specify in the output config a LeRobotDataset version (e.g 31 for v3.1). Supported: v3.1 and v2.1")
-        # dataset.finalize() # v3.1 thing...
-        return dataset
+        return
 
-    def process_episode(self, episode_path_str: str) -> List[Segment]:
-        episode_path = Path(episode_path_str)
-        episode = self.serialize(episode_path)
-        segments = self.segment_video_by_task(episode)
-        return segments
-
-
+# main tests one episode
 if __name__ == "__main__":
     import sys
 
     if len(sys.argv) < 4:
-        print("Usage: python3 serialize.py <episode_directory> <episode_directory> <repo_id>")
+        print("Usage: python3 dataset_processor.py <episode_directory> <repo_id> <output_path>")
         sys.exit(1)
     
     # Processor definition
-    processor = EpisodeProcessor(V3_Delphi27(), EgoCentricNoOverlayLeRobot31())
-    delphi_episode: Episode = processor.serialize(Path(sys.argv[1]))
-    lerobot_dataset = processor.write_lerobot_dataset(delphi_episode, sys.argv[3], sys.argv[2])
+    processor = EpisodeProcessor(V3_Delphi27(), EgoCentricNoOverlayLeRobot21())
+    delphi_episode: Episode = processor.deserialize(Path(sys.argv[1]))
+    lerobot_dataset = processor.write_to_lerobot_dataset(delphi_episode, sys.argv[2], sys.argv[3])
