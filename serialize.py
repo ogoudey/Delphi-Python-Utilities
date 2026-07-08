@@ -13,6 +13,7 @@ from PIL import Image
 
 @dataclass
 class DelphiDataExpectation:
+    use_episode_uuid_as_filename = False
     pass
 """
     tasks_filename      : str
@@ -86,17 +87,58 @@ class V2_Delphi27(DelphiDataExpectation):
  
     # --- Segment alignment ---------------------------------------------------
     segment_time_basis    = "epoch_seconds"      # how start/end times are expressed on Segment
+    segment_boundary      = "inclusive"
+
+class V3_Delphi27(DelphiDataExpectation):
+    # --- File names ----------------------------------------------------------
+    use_episode_uuid_as_filename = True
+    tasks_filename      = "*.json"
+    joints_filename     = "*.csv"
+    video_filenames      = ["*.mp4"]
+
+    # --- tasks.json keys -----------------------------------------------------
+    task_start_key      = "startTime"
+    task_end_key        = "endTime"
+    task_annotation_key = "transcription"
+    task_time_format    = "unix_epoch_seconds"   # float; or "iso8601" if strings
+ 
+    # --- joints.csv columns --------------------------------------------------
+    joints_timestamp_col  = "Timestamp"
+    joints_timestamp_fmt  = "iso8601_utc"        # e.g. "2026-03-27T21:16:31.279Z"
+    joints_source_col     = "Source"
+    joints_joint_col      = "Joint"
+    joints_position_cols  = ["PositionX", "PositionY", "PositionZ"]
+    joints_rotation_cols  = ["RotationX", "RotationY", "RotationZ", "RotationW"]
+    joints_pinch_col      = "PinchAmount"
+ 
+    # --- Segment alignment ---------------------------------------------------
+    segment_time_basis    = "epoch_seconds"      # how start/end times are expressed on Segment
     segment_boundary      = "inclusive" 
 
 @dataclass
 class OutputConfig:
+    fps = 30.0
     pass
 """
     robot_type: str
 """
 
-class EgoCentricUR5OverlayV1(OutputConfig):
+
+
+
+
+class EgoCentricUR5OverlayV1LeRobot27(OutputConfig):
+    version = 21
     robot_type = "ur5_overlay"
+
+class EgoCentricNoOverlayLeRobot27(OutputConfig):
+    version = 21
+    robot_type = "human"
+    data_keys_to_exclude = ["base", "shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"]
+
+class EgoCentricNoOverlayLeRobot31(OutputConfig):
+    version = 31
+    robot_type = "human"
 
 @dataclass
 class TaskAnnotation:
@@ -186,70 +228,7 @@ def _decode_video_segment(
  
     return frames
 
-
-
-# Processor class
-
-class EpisodeProcessor:
-    cfg: DelphiDataExpectation
-    out: OutputConfig
-    def __init__(self, dde: DelphiDataExpectation, out: OutputConfig):
-        self.cfg = dde
-        self.out = out
-        
-    def serialize(self, episode_path: Path) -> Episode:
-        episode_path = Path(episode_path)
-
-        # --- tasks.json ----------------------------------------------------------
-        print(f"tasks {episode_path.resolve()}")
-        tasks_file = episode_path / self.cfg.tasks_filename
-        with tasks_file.open() as f:
-            raw_tasks = json.load(f)
-
-        tasks: List[TaskAnnotation] = [
-            TaskAnnotation(
-                start_time=_parse_task_time(t[self.cfg.task_start_key]),
-                end_time=_parse_task_time(t[self.cfg.task_end_key]),
-                annotation=t[self.cfg.task_annotation_key],
-            )
-            for t in raw_tasks
-        ]
-
-        joints_file = episode_path / self.cfg.joints_filename
-        state = pd.read_csv(joints_file)
-        state.columns = state.columns.str.strip()
-        state["epoch_time"] = state[self.cfg.joints_timestamp_col].apply(_iso_to_epoch)
-        state = state.sort_values("epoch_time").reset_index(drop=True)
-
-        # Normalize to relative time: first joint row = t=0.0
-        state["epoch_time"] -= state["epoch_time"].iloc[0]
-
-        # Pivot: one row per timestamp, one column per (joint, field)
-        state = state.pivot_table(
-            index="epoch_time",
-            columns=self.cfg.joints_joint_col,
-            values=self.cfg.joints_position_cols + self.cfg.joints_rotation_cols + [self.cfg.joints_pinch_col],
-            aggfunc="first"
-        )
-
-        # Flatten MultiIndex columns: ("PositionX", "shoulder_pan_joint") → "shoulder_pan_joint/PositionX"
-        state.columns = [f"{joint}/{field}" for field, joint in state.columns]
-        state = state.sort_index().reset_index()
-
-        video_paths = []        
-        for video_filename in self.cfg.video_filenames:
-            video_path = episode_path / video_filename
-            if not video_path.exists():
-                raise FileNotFoundError(f"Expected video at {video_path}")
-            video_paths.append(video_path)
-        return Episode(
-            video_paths=video_paths,
-            tasks=tasks,
-            state=state,
-        )
-
-
-    def segment_video_by_task(self, episode: Episode) -> List[Segment]:
+def _segment_video_by_task(episode: Episode) -> List[Segment]:
         """
         Slice an Episode into one Segment per TaskAnnotation.
 
@@ -281,18 +260,84 @@ class EpisodeProcessor:
         return segments
 
 
-    def process_episode(self, episode_path_str: str) -> List[Segment]:
-        episode_path = Path(episode_path_str)
-        episode = self.serialize(episode_path)
-        segments = self.segment_video_by_task(episode)
+# Processor class
 
-        return segments
+class EpisodeProcessor:
+    cfg: DelphiDataExpectation
+    out: OutputConfig
+    def __init__(self, dde: DelphiDataExpectation, out: OutputConfig):
+        self.cfg = dde
+        self.out = out
+
+    def serialize(self, episode_path: Path) -> Episode:
+        episode_path = Path(episode_path)
+
+        # --- tasks.json ----------------------------------------------------------
+        print(f"tasks {episode_path.resolve()}")
+        tasks_file = episode_path / self.cfg.tasks_filename.replace("*", episode_path.stem) if self.cfg.use_episode_uuid_as_filename else episode_path / self.cfg.tasks_filename 
+        with tasks_file.open() as f:
+            raw_tasks = json.load(f)
+
+        tasks: List[TaskAnnotation] = [
+            TaskAnnotation(
+                start_time=_parse_task_time(t[self.cfg.task_start_key]),
+                end_time=_parse_task_time(t[self.cfg.task_end_key]),
+                annotation=t[self.cfg.task_annotation_key],
+            )
+            for t in raw_tasks
+        ]
+
+        joints_file = episode_path / self.cfg.joints_filename.replace("*", episode_path.stem) if self.cfg.use_episode_uuid_as_filename else episode_path / self.cfg.joints_filename
+        state = pd.read_csv(joints_file)
+        state.columns = state.columns.str.strip()
+        state["epoch_time"] = state[self.cfg.joints_timestamp_col].apply(_iso_to_epoch)
+        state = state.sort_values("epoch_time").reset_index(drop=True)
+
+        # Normalize to relative time: first joint row = t=0.0
+        state["epoch_time"] -= state["epoch_time"].iloc[0]
+
+        # Exclude undesired data
+        if self.cfg.data_keys_to_exclude:
+            state = state[~state[self.cfg.joints_joint_col].isin(self.cfg.data_keys_to_exclude)]
+
+        # Pivot: one row per timestamp, one column per (joint, field)
+        state = state.pivot_table(
+            index="epoch_time",
+            columns=self.cfg.joints_joint_col,
+            values=self.cfg.joints_position_cols + self.cfg.joints_rotation_cols + [self.cfg.joints_pinch_col],
+            aggfunc="first"
+        )
+
+        # Flatten MultiIndex columns: ("PositionX", "shoulder_pan_joint") → "shoulder_pan_joint/PositionX"
+        state.columns = [f"{joint}/{field}" for field, joint in state.columns]
+        state = state.sort_index().reset_index()
+
+        # TODO: At some point in this, I'd like to not output resulting rows with these joints: `data_keys_to_exclude`. As in, that data's no good - remove them.
+
+
+        video_paths = []        
+        for video_filename in self.cfg.video_filenames:
+            video_path = episode_path / self.cfg.video_filename.replace("*", episode_path.stem) if self.cfg.use_episode_uuid_as_filename else episode_path / video_filename
+            if not video_path.exists():
+                raise FileNotFoundError(f"Expected video at {video_path}")
+            video_paths.append(video_path)
+        return Episode(
+            video_paths=video_paths,
+            tasks=tasks,
+            state=state,
+        )
+
+
+    
+
+
+    
 
     def write_lerobot_dataset(self,
-        segments: List[Segment],
+        episode: Episode,
         repo_id: str,
-        output_path: str | Path,
-        fps: int = 30,
+        output_path: str | Path
+
     ):
         """
         Write a list of Segments to a LeRobotDataset on disk.
@@ -310,94 +355,114 @@ class EpisodeProcessor:
         Returns:
             LeRobotDataset (finalised, ready for push_to_hub or local use)
         """
-        sys.path.append("/home/olin/Robotics/LeRobot/lerobot") # This links to a lerobot package, which is often local
+        sys.path.append("/home/olin/Robotics/Projects/lerobot") # This links to a lerobot package, which is often local
 
         from lerobot.datasets.lerobot_dataset import LeRobotDataset
  
         output_path = Path(output_path)
  
-        # Build the features schema from the first segment's state columns
-        state_cols = [c for c in segments[0].state.columns if c != "epoch_time"]
-        n_state = len(state_cols)
- 
-        camera_names = [p.stem for p in segments[0].video_paths]
+        match self.out.version:
+            case 21:
+                segments = _segment_video_by_task(episode)
+
+                # Build the features schema from the first segment's state columns
+                state_cols = [c for c in segments[0].state.columns if c != "epoch_time"]
+                n_state = len(state_cols)
         
-        features = {
-            "observation.state": {
-                "dtype": "float32",
-                "shape": (n_state,),
-                "names": {"joints": state_cols},
-            },
-            "action": {
-                "dtype": "float32",
-                "shape": (n_state,),
-                "names": {"joints": state_cols},
-            },
-            **{
-                f"observation.images.{cam}": {
-                    "dtype": "video",
-                    "shape": (480, 640, 3),
-                    "names": ["height", "width", "channel"],
-                }
-                for cam in camera_names
-            },
-        }
- 
-        
-
-        dataset = LeRobotDataset.create(
-            repo_id=repo_id,
-            root=output_path,
-            fps=fps,
-            robot_type=self.out.robot_type,
-            features=features,
-            use_videos=True,
-        )
- 
-        for seg in segments:
-            print(f"task: {seg.task}")
-            print(f"  window:     {seg.video_start_time:.3f} → {seg.video_end_time:.3f}")
-            print(f"  state rows: {len(seg.state)}")
-            if len(seg.state):
-                print(f"  state time: {seg.state['epoch_time'].min():.3f} → {seg.state['epoch_time'].max():.3f}")
-
-        for seg in segments:
-            # Decode all cameras; key by camera name derived from filename stem
-            all_frames = {
-                video_path.stem: _decode_video_segment(
-                    video_path,
-                    seg.video_start_time,
-                    seg.video_end_time,
-                    fps,
-                )
-                for video_path in seg.video_paths
-            }
-
-            # Trim to shortest camera (guards against minor length mismatches)
-            n_frames = min(len(f) for f in all_frames.values())
-            all_frames = {k: v[:n_frames] for k, v in all_frames.items()}
-
-            state_matrix = seg.state[state_cols].to_numpy(dtype=np.float32)
-            seg_epoch_times = seg.state["epoch_time"].to_numpy()
-            frame_times = seg.video_start_time + np.arange(n_frames) / fps
-
-            for i, t in enumerate(frame_times):
-                row_idx = int(np.argmin(np.abs(seg_epoch_times - t)))
-                state_vec = state_matrix[row_idx]
-
-                dataset.add_frame(
-                    {
-                        "observation.state": state_vec,
-                        "action": state_vec,
-                        **{f"observation.images.{cam}": frames[i] for cam, frames in all_frames.items()},
+                camera_names = [p.stem for p in segments[0].video_paths]
+                
+                features = {
+                    "observation.state": {
+                        "dtype": "float32",
+                        "shape": (n_state,),
+                        "names": {"joints": state_cols},
                     },
-                    task=seg.task,
-                )
+                    "action": {
+                        "dtype": "float32",
+                        "shape": (n_state,),
+                        "names": {"joints": state_cols},
+                    },
+                    **{
+                        f"observation.images.{cam}": {
+                            "dtype": "video",
+                            "shape": (480, 640, 3),
+                            "names": ["height", "width", "channel"],
+                        }
+                        for cam in camera_names
+                    },
+                }
+        
+                
 
-            dataset.save_episode()
- 
+                dataset = LeRobotDataset.create(
+                    repo_id=repo_id,
+                    root=output_path,
+                    fps=self.out.fps,
+                    robot_type=self.out.robot_type,
+                    features=features,
+                    use_videos=True,
+                )
+        
+                for seg in segments:
+                    print(f"task: {seg.task}")
+                    print(f"  window:     {seg.video_start_time:.3f} → {seg.video_end_time:.3f}")
+                    print(f"  state rows: {len(seg.state)}")
+                    if len(seg.state):
+                        print(f"  state time: {seg.state['epoch_time'].min():.3f} → {seg.state['epoch_time'].max():.3f}")
+
+                for seg in segments:
+                    # Decode all cameras; key by camera name derived from filename stem
+                    all_frames = {
+                        video_path.stem: _decode_video_segment(
+                            video_path,
+                            seg.video_start_time,
+                            seg.video_end_time,
+                            self.out.fps,
+                        )
+                        for video_path in seg.video_paths
+                    }
+
+                    # Trim to shortest camera (guards against minor length mismatches)
+                    n_frames = min(len(f) for f in all_frames.values())
+                    all_frames = {k: v[:n_frames] for k, v in all_frames.items()}
+
+                    state_matrix = seg.state[state_cols].to_numpy(dtype=np.float32)
+                    seg_epoch_times = seg.state["epoch_time"].to_numpy()
+                    frame_times = seg.video_start_time + np.arange(n_frames) / self.out.fps
+
+                    for i, t in enumerate(frame_times):
+                        row_idx = int(np.argmin(np.abs(seg_epoch_times - t)))
+                        state_vec = state_matrix[row_idx]
+
+                        dataset.add_frame(
+                            {
+                                "observation.state": state_vec,
+                                "action": state_vec,
+                                **{f"observation.images.{cam}": frames[i] for cam, frames in all_frames.items()},
+                            },
+                            task=seg.task,
+                        )
+
+                    dataset.save_episode()
+                print(f"Produced {len(segments)} segment(s):\n")
+                for i, seg in enumerate(segments):
+                    print(
+                        f"  [{i}] '{seg.task}'\n"
+                        f"       time  : {seg.video_start_time:.3f} → {seg.video_end_time:.3f} s\n"
+                        f"       joints: {len(seg.state)} rows\n")
+            case 31:
+                pass
+            case _:
+                raise ValueError("Please specify in the output config a LeRobotDataset version (e.g 31 for v3.1). Supported: v3.1 and v2.1")
         # dataset.finalize() # v3.1 thing...
         return dataset
+
+    def process_episode(self, episode_path_str: str) -> List[Segment]:
+        episode_path = Path(episode_path_str)
+        episode = self.serialize(episode_path)
+        segments = self.segment_video_by_task(episode)
+        return segments
+
 
 if __name__ == "__main__":
     import sys
@@ -405,13 +470,8 @@ if __name__ == "__main__":
     if len(sys.argv) < 4:
         print("Usage: python3 serialize.py <episode_directory> <episode_directory> <repo_id>")
         sys.exit(1)
-
-    processor = EpisodeProcessor(V1(), EgoCentricUR5OverlayV1())
-    segments = processor.process_episode(sys.argv[1])
-    print(f"Produced {len(segments)} segment(s):\n")
-    for i, seg in enumerate(segments):
-        print(
-            f"  [{i}] '{seg.task}'\n"
-            f"       time  : {seg.video_start_time:.3f} → {seg.video_end_time:.3f} s\n"
-            f"       joints: {len(seg.state)} rows\n")
-    lerobot_dataset = processor.write_lerobot_dataset(segments, sys.argv[3], sys.argv[2])   
+    
+    # Processor definition
+    processor = EpisodeProcessor(V3_Delphi27(), EgoCentricNoOverlayLeRobot31())
+    delphi_episode: Episode = processor.serialize(Path(sys.argv[1]))
+    lerobot_dataset = processor.write_lerobot_dataset(delphi_episode, sys.argv[3], sys.argv[2])
