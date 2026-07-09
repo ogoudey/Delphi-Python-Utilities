@@ -14,6 +14,7 @@ from PIL import Image
 @dataclass
 class DelphiDataExpectation:
     use_episode_uuid_as_file_stem = False
+    use_subdirs_as_compound_tasks = False
     pass
 """
     tasks_filename      : str
@@ -64,12 +65,13 @@ class V1(DelphiDataExpectation):
     segment_time_basis    = "epoch_seconds"      # how start/end times are expressed on Segment
     segment_boundary      = "inclusive" 
 
-class V2_Delphi27(DelphiDataExpectation):
+class V3_Delphi27(DelphiDataExpectation):
     # --- File names ----------------------------------------------------------
-    tasks_filename      = "tasks.json"
-    joints_filename     = "state.csv"
-    video_filenames      = ["head.mp4"]
- 
+    use_episode_uuid_as_file_stem = True
+    tasks_filename      = ".json"
+    joints_filename     = ".csv"
+    video_filenames      = [".mp4"]
+
     # --- tasks.json keys -----------------------------------------------------
     task_start_key      = "startTime"
     task_end_key        = "endTime"
@@ -89,8 +91,9 @@ class V2_Delphi27(DelphiDataExpectation):
     segment_time_basis    = "epoch_seconds"      # how start/end times are expressed on Segment
     segment_boundary      = "inclusive"
 
-class V3_Delphi27(DelphiDataExpectation):
+class V3_Delphi27_CompoundTaskFolders(DelphiDataExpectation):
     # --- File names ----------------------------------------------------------
+    use_subdirs_as_compound_tasks = True
     use_episode_uuid_as_file_stem = True
     tasks_filename      = ".json"
     joints_filename     = ".csv"
@@ -143,6 +146,12 @@ class EgoCentricNoOverlayLeRobot21(OutputConfig):
 class EgoCentricNoOverlayLeRobot31(OutputConfig):
     version = 31
     robot_type = "human"
+    camera_name = "head"
+    use_first_person = False
+    merge_handedness_with_joint_name = True
+    data_keys_to_exclude = ["base", "shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"]
+
+
 
 @dataclass
 class TaskAnnotation:
@@ -156,6 +165,8 @@ class Episode:
     video_paths: List[Path]
     tasks: List[TaskAnnotation]
     state: pd.DataFrame                 # full joint CSV, timestamp-indexed
+    compound_task_annotation: str = ""
+
 
 @dataclass
 class Segment:
@@ -237,6 +248,61 @@ def _decode_video_segment(
  
     return frames
 
+def _decode_video_segment_generator(
+    video_path: Path,
+    start_epoch: float,
+    end_epoch: float,
+    fps: int,
+):
+    t0 = max(0.0, start_epoch)
+    t1 = end_epoch
+    target_interval = 1.0 / fps
+    next_target = t0
+
+    with av.open(str(video_path)) as container:
+        stream = container.streams.video[0]
+        stream.codec_context.skip_frame = "NONKEY"
+        container.seek(int(t0 / float(stream.time_base)), any_frame=False)
+        stream.codec_context.skip_frame = "DEFAULT"
+
+        for packet in container.demux(stream):
+            for frame in packet.decode():
+                pts_sec = float(frame.pts * stream.time_base)
+                if pts_sec < t0:
+                    continue
+                if pts_sec > t1:
+                    return
+                if pts_sec >= next_target:
+                    yield frame.to_image()
+                    next_target += target_interval
+
+def _get_language_persistent_from_episode(episode: Episode) -> list:
+    # compound task covers the whole episode starting at 0.0
+    atoms = [
+        {
+            "role": "assistant",
+            "content": episode.compound_task_annotation,
+            "style": "subtask",
+            "timestamp": 0.0,
+            "camera": None,
+            "tool_calls": None,
+        }
+    ]
+    # individual subtasks fire at their start_time
+    for task in episode.tasks:
+        atoms.append({
+            "role": "assistant",
+            "content": task.annotation,
+            "style": "subtask",
+            "timestamp": task.start_time,
+            "camera": None,
+            "tool_calls": None,
+        })
+    return atoms
+
+def _get_episode_duration(episode: Episode) -> float:
+    return float(episode.state["epoch_time"].iloc[-1])
+
 def _segment_video_by_task(episode: Episode) -> List[Segment]:
         """
         Slice an Episode into one Segment per TaskAnnotation.
@@ -282,6 +348,9 @@ class DatasetProcessor:
 
     def deserialize(self, episode_path: Path) -> Episode:
         episode_path = Path(episode_path)
+
+        # --- compound task annotation ---
+        compound_task_annotation = str(episode_path.parts[-2]) if self.cfg.use_subdirs_as_compound_tasks else "untracked"
 
         # --- tasks.json ----------------------------------------------------------
         tasks_file = episode_path.with_suffix(self.cfg.tasks_filename) if self.cfg.use_episode_uuid_as_file_stem else episode_path / self.cfg.tasks_filename 
@@ -346,15 +415,13 @@ class DatasetProcessor:
             video_paths=video_paths,
             tasks=tasks,
             state=state,
+            compound_task_annotation=compound_task_annotation
         )
 
-
-    
-
-    def create_lerobot_dataset(self, representative_segment: Segment, repo_id: str, output_path: Path):
-        sys.path.append("/home/olin/Robotics/Projects/lerobot") # This links to a lerobot package, which is often local
+    def create_lerobot_dataset(self, representative_segment: Segment | Episode, repo_id: str, output_path: Path):
+        sys.path.append("/home/olin/Robotics/Labyrinth/lerobot") # This links to a lerobot package, which is often local
         from lerobot.datasets.lerobot_dataset import LeRobotDataset
-        
+        from lerobot.datasets.language import language_feature_info
         match self.out.version:
             case 21:
 
@@ -393,7 +460,40 @@ class DatasetProcessor:
                     use_videos=True,
                 )
             case 31:
-                pass
+                # Build the features schema from the first segment's state columns
+                state_cols = [c for c in representative_segment.state.columns if c != "epoch_time"]
+                n_state = len(state_cols)
+        
+                camera_names = [self.out.camera_name]#[p.stem for p in representative_segment.video_paths]
+                
+                features = {
+                    "observation.state": {
+                        "dtype": "float32",
+                        "shape": (n_state,),
+                        "names": {"joints": state_cols},
+                    },
+                    "action": {
+                        "dtype": "float32",
+                        "shape": (n_state,),
+                        "names": {"joints": state_cols},
+                    },
+                    **{
+                        f"observation.images.{cam}": {
+                            "dtype": "video",
+                            "shape": _video_shape(representative_segment.video_paths[0]), # assumes only one camera again
+                            "names": ["height", "width", "channel"],
+                        }
+                        for cam in camera_names
+                    },
+                    **language_feature_info(),
+                }
+                self.output_dataset = LeRobotDataset.create(
+                    repo_id=repo_id,
+                    root=output_path,
+                    fps=self.out.fps,
+                    robot_type=self.out.robot_type,
+                    features=features
+                )
             case _:
                 raise ValueError("Please specify in the output config a LeRobotDataset version (e.g 31 for v3.1). Supported: v3.1 and v2.1")
 
@@ -414,10 +514,9 @@ class DatasetProcessor:
             segments:     List of segments
             repo_id:      HuggingFace-style repo id, e.g. "local/datasetname", "labyrinthai/ourfirstupload"
             output_path:  local root directory for the dataset
-            fps:          target frame-rate for the LeRobot dataset (30)
  
         Returns:
-            LeRobotDataset (finalised, ready for push_to_hub or local use)
+            LeRobotDataset (finalized, ready for push_to_hub or local use)
         """
         
  
@@ -487,7 +586,55 @@ class DatasetProcessor:
                         f"       time  : {seg.video_start_time:.3f} → {seg.video_end_time:.3f} s\n"
                         f"       joints: {len(seg.state)} rows\n")
             case 31:
-                self.output_dataset.finalize() # v3.1 thing...
+                if not self.output_dataset:
+                    self.create_lerobot_dataset(representative_segment=episode, repo_id=repo_id, output_path=output_path) 
+
+                all_frames = {
+                    self.out.camera_name: _decode_video_segment( # key might want to be video_path.stem !! assumes one video!
+                        video_path,
+                        0.0,  # episode.video_start_time, # episode doesn't carry this - its just the start of the video
+                        _get_episode_duration(episode), # episode.video_end_time, # When the episode ends - Episode also doesn't carry this.
+                        self.out.fps,
+                    )
+                    for video_path in episode.video_paths # there's only one... few
+                }
+
+                # Trim to shortest camera (guards against minor length mismatches)
+                n_frames = min(len(f) for f in all_frames.values()) # 10
+                all_frames = {k: v[:n_frames] for k, v in all_frames.items()}
+                
+                state_cols = [c for c in episode.state.columns if c != "epoch_time"]
+                state_matrix = episode.state[state_cols].to_numpy(dtype=np.float32)
+                seg_epoch_times = episode.state["epoch_time"].to_numpy()
+                frame_times = 0.0 + np.arange(n_frames) / self.out.fps # doesnt run... episode doesn't have that...
+
+                #language_persistent = _get_language_persistent_from_episode(episode)
+
+                # First pass: resolve the state vector for every frame in this segment.
+                frame_states = []
+                for t in frame_times:
+                    row_idx = int(np.argmin(np.abs(seg_epoch_times - t)))
+                    frame_states.append(state_matrix[row_idx])
+
+                # Second pass: essentially action[t] = state[t+1], last frame pads with its own state.
+                for i in range(n_frames):
+                    state_vec = frame_states[i]
+                    action_vec = frame_states[i + 1] if i + 1 < n_frames else frame_states[i]
+
+                    self.output_dataset.add_frame(
+                        {
+                            "observation.state": state_vec,
+                            "action": action_vec,
+                            **{f"observation.images.{cam}": frames[i] for cam, frames in all_frames.items()},
+                            "language_persistent": [],#"language_persistent": language_persistent,
+                            "language_events": [],#"language_events": "[]",   # empty for now unless you have per-frame events
+                            "task": episode.compound_task_annotation,
+                        }
+                    )
+                print(f"Saving episode '{episode.compound_task_annotation}'.")
+                self.output_dataset.save_episode()
+
+                
             case _:
                 raise ValueError("Please specify in the output config a LeRobotDataset version (e.g 31 for v3.1). Supported: v3.1 and v2.1")
         return
@@ -501,6 +648,7 @@ if __name__ == "__main__":
         sys.exit(1)
     
     # Processor definition
-    processor = EpisodeProcessor(V3_Delphi27(), EgoCentricNoOverlayLeRobot21())
+    processor = DatasetProcessor(V3_Delphi27_CompoundTaskFolders(), EgoCentricNoOverlayLeRobot31())
     delphi_episode: Episode = processor.deserialize(Path(sys.argv[1]))
     lerobot_dataset = processor.write_to_lerobot_dataset(delphi_episode, sys.argv[2], sys.argv[3])
+    processor.output_dataset.finalize() # v3.1 thing...
