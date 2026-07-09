@@ -485,7 +485,7 @@ class DatasetProcessor:
                         }
                         for cam in camera_names
                     },
-                    **language_feature_info(),
+                    #**language_feature_info(),
                 }
                 self.output_dataset = LeRobotDataset.create(
                     repo_id=repo_id,
@@ -589,6 +589,59 @@ class DatasetProcessor:
                 if not self.output_dataset:
                     self.create_lerobot_dataset(representative_segment=episode, repo_id=repo_id, output_path=output_path) 
 
+                state_cols = [c for c in episode.state.columns if c != "epoch_time"]
+                state_matrix = episode.state[state_cols].to_numpy(dtype=np.float32)
+                seg_epoch_times = episode.state["epoch_time"].to_numpy()
+                duration = _get_episode_duration(episode)
+
+                generators = {
+                    self.out.camera_name: _decode_video_segment_generator(
+                        video_path, 0.0, duration, self.out.fps,
+                    )
+                    for video_path in episode.video_paths
+                }
+
+                prev_state_vec = None
+                prev_cam_dict = None
+
+                for frame_idx, cam_frames in enumerate(zip(*generators.values())):
+                    cam_dict = dict(zip(generators.keys(), cam_frames))
+                    t = frame_idx / self.out.fps
+                    row_idx = int(np.argmin(np.abs(seg_epoch_times - t)))
+                    state_vec = state_matrix[row_idx]
+
+                    if prev_state_vec is not None:
+                        self.output_dataset.add_frame({
+                            "observation.state": prev_state_vec,
+                            "action": state_vec,              # action[t] = state[t+1]
+                            **{f"observation.images.{cam}": img for cam, img in prev_cam_dict.items()},
+                            #"language_persistent": [],
+                            #"language_events": [],
+                            "task": episode.compound_task_annotation,
+                        })
+
+                    prev_state_vec = state_vec
+                    prev_cam_dict = cam_dict
+
+                # last frame: action pads with own state
+                if prev_state_vec is not None:
+                    self.output_dataset.add_frame({
+                        "observation.state": prev_state_vec,
+                        "action": prev_state_vec,
+                        **{f"observation.images.{cam}": img for cam, img in prev_cam_dict.items()},
+                        #"language_persistent": None,
+                        #"language_events": None,
+                        "task": episode.compound_task_annotation,
+                    })
+
+                print(f"Saving episode '{episode.compound_task_annotation}'.")
+                self.output_dataset.save_episode()
+
+
+
+
+
+                """
                 all_frames = {
                     self.out.camera_name: _decode_video_segment( # key might want to be video_path.stem !! assumes one video!
                         video_path,
@@ -633,7 +686,7 @@ class DatasetProcessor:
                     )
                 print(f"Saving episode '{episode.compound_task_annotation}'.")
                 self.output_dataset.save_episode()
-
+                """
                 
             case _:
                 raise ValueError("Please specify in the output config a LeRobotDataset version (e.g 31 for v3.1). Supported: v3.1 and v2.1")

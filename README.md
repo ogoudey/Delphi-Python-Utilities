@@ -4,9 +4,9 @@
 
 Change `sys.path.append("/home/...)` to your LeRobot install.
 
-Turns a dataset downloaded from Delphi (with given version) to a LeRobotDataset of desired format.
+Turns a dataset downloaded from Delphi (with given version) to a LeRobotDataset of desired format (change `DatasetProcessor` constructor to change the format).
 ```
-Usage: python3 serialize.py <episode_directory> <episode_directory> <repo_id>
+Usage: python3 convert_dataset.py <input_dataset_path> <repo_id> <output_dataset_path>
 ```
 
 ### Compositor
