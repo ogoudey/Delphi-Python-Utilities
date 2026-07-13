@@ -350,6 +350,8 @@ class DatasetProcessor:
         episode_path = Path(episode_path)
 
         # --- compound task annotation ---
+        print(episode_path)
+        print(episode_path.parts)
         compound_task_annotation = str(episode_path.parts[-2]) if self.cfg.use_subdirs_as_compound_tasks else "untracked"
 
         # --- tasks.json ----------------------------------------------------------

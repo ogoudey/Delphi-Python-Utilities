@@ -15,6 +15,7 @@ if __name__ == "__main__":
             for path in subdir.iterdir():
                 if not path.is_file():
                     continue
+                path = path.with_suffix("")
                 if path in delphi_episode_paths:
                     continue
                 delphi_episode_paths.add(path)
@@ -22,12 +23,13 @@ if __name__ == "__main__":
         for path in root.iterdir():
             if not path.is_file():
                 continue
+            path = path.with_suffix("")
             if path in delphi_episode_paths:
                 continue
             delphi_episode_paths.add(path)
 
     for i, episode in enumerate(delphi_episode_paths):
-        print(f"  [{i}] '{episode.stem}'")
+        print(f"  [{i}] '{episode}'")
     
     for delphi_episode_path in delphi_episode_paths:
         delphi_episode = processor.deserialize(delphi_episode_path)
