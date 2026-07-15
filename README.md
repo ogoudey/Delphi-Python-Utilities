@@ -9,6 +9,16 @@ Turns a dataset downloaded from Delphi (with given version) to a LeRobotDataset 
 Usage: python3 convert_dataset.py <input_dataset_path> <repo_id> <output_dataset_path>
 ```
 
+#### Annotation
+To make a pass over a dataset output from above, we (regrettably - this should change) match the episodes in the parquets to the raw annotions from earlier.
+```
+python3 dataset_annotator.py <lerobotdataset> <input_dataset_path> (--dry-run)
+```
+Verify with:
+```
+python3 verify.py <lerobot data file> # e.g. lerobotdataset/data/chunk-000/file-000.parquet
+```
+
 ### Compositor
 Composites a raw video with a robot overlay, downloaded from delphi.
 ```

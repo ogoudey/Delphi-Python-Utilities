@@ -381,8 +381,6 @@ class DatasetProcessor:
         if self.out.data_keys_to_exclude:
             state = state[~state[self.cfg.joints_joint_col].isin(self.out.data_keys_to_exclude)]
         
-        
-        
         if self.out.merge_handedness_with_joint_name:
             # e.g. source="right", joint="Wrist" -> joint="RightWrist"
 
