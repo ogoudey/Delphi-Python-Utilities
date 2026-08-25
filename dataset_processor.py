@@ -120,6 +120,7 @@ class V3_Delphi27_CompoundTaskFolders(DelphiDataExpectation):
 
 @dataclass
 class OutputConfig:
+    version = None
     fps = 30
     merge_handedness_with_joint_name = False # overriden
     use_first_person = True
