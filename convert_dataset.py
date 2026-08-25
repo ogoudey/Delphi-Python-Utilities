@@ -9,7 +9,7 @@ if __name__ == "__main__":
     
     root = Path(sys.argv[1])
     delphi_episode_paths = []
-
+    print("Traversing input data...")
     if processor.cfg.use_subdirs_as_compound_tasks:
         for subdir in root.iterdir():
             for path in subdir.iterdir():
@@ -27,14 +27,15 @@ if __name__ == "__main__":
             if path in delphi_episode_paths:
                 continue
             delphi_episode_paths.append(path)
-
+    
     for i, episode in enumerate(delphi_episode_paths):
         print(f"  [{i}] '{episode}'")
     
-    for delphi_episode_path in delphi_episode_paths:
-        print(f"Processing {delphi_episode_path.name}")
-        continue
+    for i, delphi_episode_path in enumerate(delphi_episode_paths):
+        print(f"{i}/{len(delphi_episode_paths)} Processing {delphi_episode_path.name}")
         delphi_episode = processor.deserialize(delphi_episode_path)
+        print(f"{i}/{len(delphi_episode_paths)} {delphi_episode_path.name} deserialized. Writing...")
         lerobot_dataset = processor.write_to_lerobot_dataset(delphi_episode, sys.argv[2], sys.argv[3])
+        print(f"{i}/{len(delphi_episode_paths)} {delphi_episode_path.name} written.")
     if processor.out.version == 31:
         processor.output_dataset.finalize()

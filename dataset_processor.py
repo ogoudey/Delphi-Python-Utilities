@@ -537,7 +537,7 @@ class DatasetProcessor:
                     if len(seg.state):
                         print(f"  state time: {seg.state['epoch_time'].min():.3f} → {seg.state['epoch_time'].max():.3f}")
 
-                for seg in segments:
+                for i, seg in enumerate(segments):
                     # Decode all cameras; key by camera name derived from filename stem
                     all_frames = {
                         self.out.camera_name: _decode_video_segment( # key might want to be video_path.stem !! assumes one video!
@@ -548,7 +548,7 @@ class DatasetProcessor:
                         )
                         for video_path in seg.video_paths
                     }
-
+                    
                     # Trim to shortest camera (guards against minor length mismatches)
                     n_frames = min(len(f) for f in all_frames.values())
                     all_frames = {k: v[:n_frames] for k, v in all_frames.items()}
@@ -559,26 +559,27 @@ class DatasetProcessor:
                     frame_times = seg.video_start_time + np.arange(n_frames) / self.out.fps
 
                     # First pass: resolve the state vector for every frame in this segment.
+                    
                     frame_states = []
                     for t in frame_times:
                         row_idx = int(np.argmin(np.abs(seg_epoch_times - t)))
                         frame_states.append(state_matrix[row_idx])
 
                     # Second pass: essentially action[t] = state[t+1], last frame pads with its own state.
-                    for i in range(n_frames):
-                        state_vec = frame_states[i]
-                        action_vec = frame_states[i + 1] if i + 1 < n_frames else frame_states[i]
+                    print(f"Segment {i}/{len(segments)} \"{seg.task}\". Adding {n_frames} frames...")
+                    for j in range(n_frames):
+                        state_vec = frame_states[j]
+                        action_vec = frame_states[j + 1] if j + 1 < n_frames else frame_states[j]
 
                         self.output_dataset.add_frame(
                             {
                                 "observation.state": state_vec,
                                 "action": action_vec,
-                                **{f"observation.images.{cam}": frames[i] for cam, frames in all_frames.items()},
+                                **{f"observation.images.{cam}": frames[j] for cam, frames in all_frames.items()},
                             },
                             task=seg.task,
                         )
-
-                    self.output_dataset.save_episode()
+                    print(f"Segment {i}/{len(segments)} \"{seg.task}\". Saving segment => episode...")
 
                 print(f"Produced {len(segments)} segment(s):\n")
                 for i, seg in enumerate(segments):
@@ -706,3 +707,4 @@ if __name__ == "__main__":
     delphi_episode: Episode = processor.deserialize(Path(sys.argv[1]))
     lerobot_dataset = processor.write_to_lerobot_dataset(delphi_episode, sys.argv[2], sys.argv[3])
     processor.output_dataset.finalize() # v3.1 thing...
+    self.output_dataset.save_episode()
