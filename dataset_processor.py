@@ -421,7 +421,7 @@ class DatasetProcessor:
     def create_lerobot_dataset(self, representative_segment: Segment | Episode, repo_id: str, output_path: Path):
         sys.path.append("/home/olin/Robotics/Labyrinth/lerobot") # This links to a lerobot package, which is often local
         from lerobot.datasets.lerobot_dataset import LeRobotDataset
-        from lerobot.datasets.language import language_feature_info
+        
         match self.out.version:
             case 21:
 
@@ -460,6 +460,7 @@ class DatasetProcessor:
                     use_videos=True,
                 )
             case 31:
+                from lerobot.datasets.language import language_feature_info
                 # Build the features schema from the first segment's state columns
                 state_cols = [c for c in representative_segment.state.columns if c != "epoch_time"]
                 n_state = len(state_cols)
