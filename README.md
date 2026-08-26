@@ -28,6 +28,11 @@ graph LR
     end
 ```
 
+### In Workflow
+So far, this is the command to run that works-ish.
+```
+python3 main.py example_data tmp_destination delphi_flat_composite_no_segments lerobot_v21_joints
+```
 ### Delphi => LeRobotDataset
 
 Change `sys.path.append("/home/...)` to your LeRobot install.

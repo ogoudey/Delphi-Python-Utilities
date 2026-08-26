@@ -16,6 +16,8 @@ class DelphiDataExpectation:
     use_episode_uuid_as_file_stem = False
     use_subdirs_as_compound_tasks = False
     has_segments = True
+    in_local_quaternions = True
+    
     pass
 """
     tasks_filename      : str
@@ -131,6 +133,8 @@ class V3_Delphi27_Composite_NoSegments(DelphiDataExpectation):
     joints_position_cols  = ["PositionX", "PositionY", "PositionZ"]
     joints_rotation_cols  = ["RotationX", "RotationY", "RotationZ", "RotationW"]
     joints_pinch_col      = "PinchAmount"
+    end_effector_name = "gripper"
+
 @dataclass
 class OutputConfig:
     version = None
@@ -138,6 +142,7 @@ class OutputConfig:
     merge_handedness_with_joint_name = False # overriden
     use_first_person = True
     proprioception_mode = None
+    write_modality_json = False
 """
     robot_type: str
 """
@@ -174,8 +179,8 @@ class LeRobot21Joints(OutputConfig):
     camera_name = "head" # Just one camera - bound to fail later
     merge_handedness_with_joint_name = True
     proprioception_mode = "joints"
-    data_keys_to_exclude = ["base", "shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"] 
-
+    data_keys_to_exclude = ["base", "endEffector"] 
+    write_modality_json = True
 class EgoCentricNoOverlayLeRobot31(OutputConfig):
     version = 31
     robot_type = "human"
@@ -383,11 +388,13 @@ class DatasetProcessor:
     MY_TID2ANNOT8_MAP = {
         "SortUtensils": "touch the orange"
     }
+
     def __init__(self, dde: DelphiDataExpectation, out: OutputConfig):
         self.cfg = dde
         self.out = out
         
         self.output_dataset = None
+        self.local_quaternion_to_joint_value_map = {}
 
     def deserialize_into_episode(self, episode_path: Path) -> Episode:
         episode_path = Path(episode_path)
@@ -477,28 +484,60 @@ class DatasetProcessor:
         # ---------------- state ------------------
         if not self.out.proprioception_mode == "joints":
             raise NotImplementedError(f"Only joints proprioception available. RC doesn't output target pose.")
-
+        
         joints_file = episode_path.with_suffix(self.cfg.state_filename)
         state = pd.read_csv(joints_file)
-        state.columns = state.columns.str.strip()
-        print(f"{state.columns}")
+        state.columns = state.columns.str.strip()  # moved above the calibration call
+
+        if self.cfg.in_local_quaternions and not self.local_quaternion_to_joint_value_map:
+            self._calculate_joint_value_map(state)
+
+        # capture joint order exactly as it appears in the intake sheet,
+        # before sort_values/pivot_table can reorder anything
+        arm_joints = [
+            j for j in pd.unique(state[self.cfg.joints_joint_col])
+            if j not in self.out.data_keys_to_exclude and j != self.cfg.end_effector_name
+        ]
+
         state["epoch_time"] = state[self.cfg.joints_timestamp_col].apply(_iso_to_epoch)
         state = state.sort_values("epoch_time").reset_index(drop=True)
-
-        # Normalize to relative time: first joint row = t=0.0
         state["epoch_time"] -= state["epoch_time"].iloc[0]
-        # Pivot: one row per timestamp, one column per (joint, field)
+
         state = state.pivot_table(
             index="epoch_time",
             columns=self.cfg.joints_joint_col,
             values=self.cfg.joints_position_cols + self.cfg.joints_rotation_cols + [self.cfg.joints_pinch_col],
             aggfunc="first"
         )
-        print(state)
-        # Flatten MultiIndex columns: ("PositionX", "shoulder_pan_joint") → "shoulder_pan_joint/PositionX"
-        state.columns = [f"{joint}/{field}" for field, joint in state.columns]
+
+        # ---- apply joint_name -> joint_value ----
+        rx, ry, rz, rw = self.cfg.joints_rotation_cols
+
+        angle_cols = {}
+        for joint in arm_joints:
+            axis_col = self.local_quaternion_to_joint_value_map.get(joint)
+            if axis_col is None:
+                raise KeyError(
+                    f"joint '{joint}' has no resolved axis in local_quaternion_to_joint_value_map — "
+                    f"this episode didn't have enough motion to calibrate it, and no earlier "
+                    f"episode did either. Process a higher-motion episode for this joint first."
+                )
+            component = state[(axis_col, joint)]
+            w = state[(rw, joint)]
+            angle_cols[f"{joint}"] = np.unwrap(2.0 * np.arctan2(component, w))
+
+        gripper_col = ("PinchAmount", self.cfg.end_effector_name)
+        if gripper_col not in state.columns:
+            raise KeyError(
+                f"expected pinch column {gripper_col} not found — check that "
+                f"'{self.cfg.end_effector_name}' is the exact joint-name value in "
+                f"{self.cfg.joints_joint_col} and 'PinchAmount' is in the values list "
+                f"passed to pivot_table."
+            )
+        gripper_series = state[gripper_col]
+
+        state = pd.DataFrame({**angle_cols, "gripper": gripper_series}, index=state.index)
         state = state.sort_index().reset_index()
-        print(state)
 
         # ------------ videos -----------------
         video_paths = []        
@@ -514,6 +553,85 @@ class DatasetProcessor:
             task=language
         )
 
+    def _calculate_joint_value_map(self, state):
+        """
+        Populate self.local_quaternion_to_joint_value_map: {joint_name: axis_col},
+        where axis_col is whichever of X/Y/Z carries this joint's hinge motion,
+        determined empirically from this episode's long-form data (one row per
+        joint per timestamp). W is never a candidate — it varies with any
+        rotation regardless of axis, so it carries no axis information.
+
+        Only resolves joints with enough motion in THIS episode to tell;
+        leaves the rest unresolved (missing from the dict) so a later,
+        higher-motion episode can fill them in via the same not-truthy check
+        upstream — though note that check is `not self.local_quaternion_to_joint_value_map`,
+        i.e. "dict is empty", so it'll only fire again on the very first
+        episode if the dict starts non-empty. If you expect calibration to
+        need multiple episodes, that condition should probably be "any
+        intake joint missing from the map" rather than "map is falsy" —
+        worth revisiting once you see whether one episode is ever enough.
+        """
+        joint_col = self.cfg.joints_joint_col
+        rx, ry, rz, rw = self.cfg.joints_rotation_cols
+        axis_candidates = [rx, ry, rz]
+        tol = getattr(self.cfg, "joint_axis_tol", 1e-3)
+        min_std = getattr(self.cfg, "joint_axis_min_std", 1e-2)
+
+        for joint, group in state.groupby(joint_col):
+            if joint in self.out.data_keys_to_exclude:
+                continue
+            if joint in self.local_quaternion_to_joint_value_map:
+                continue
+
+            stds = {c: group[c].std() for c in axis_candidates}
+            axis_col = max(stds, key=stds.get)
+            if stds[axis_col] < min_std:
+                continue  # not enough motion this episode to tell yet
+
+            for c in axis_candidates:
+                if c == axis_col:
+                    continue
+                max_abs = group[c].abs().max()
+                if max_abs > tol:
+                    raise ValueError(
+                        f"joint '{joint}': off-axis component {c} peaks at {max_abs:.4f} "
+                        f"(> tol={tol}) while candidate hinge axis {axis_col} has "
+                        f"std={stds[axis_col]:.4f}. Not a clean single-axis hinge — inspect."
+                    )
+
+            self.local_quaternion_to_joint_value_map[joint] = axis_col
+    
+    def _write_modality_json(self, modality_path, joints, n_pinch, video_key, task):
+        """
+        State/action layout built above:
+            [joint_0/rot_0 .. joint_0/rot_k, joint_1/rot_0 .. , ..., pinch_0 .. pinch_{n_pinch-1}]
+        i.e. rotation fields per joint in canonical order, then pinch dims.
+        Assumes your action-building code produces the SAME layout — verify that
+        separately, this doesn't check it.
+        """
+        n_rotation_dims = (len(joints) - 1)
+
+        modality = {
+            "state": {
+                "joint_rotation": {"start": 0, "end": n_rotation_dims},
+                "gripper": {"start": n_rotation_dims, "end": n_rotation_dims + n_pinch},
+            },
+            "action": {
+                "joint_rotation": {"start": 0, "end": n_rotation_dims},
+                "gripper": {"start": n_rotation_dims, "end": n_rotation_dims + n_pinch},
+            },
+            "video": {
+                video_key: {"original_key": f"observation.images.{video_key}"}
+            },
+            "annotation": {
+                "human.action.task_description": {}
+            },
+        }
+        modality_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(modality_path, "w") as f:
+            json.dump(modality, f, indent=2)
+
+        print(f"wrote {modality_path} | joints={joints} | rot_dims={n_rotation_dims} | pinch_dims={n_pinch}")
 
     def create_lerobot_dataset(self, representative_segment: Segment | Episode | SimpleEpisode, repo_id: str, output_path: Path):
         sys.path.append("/home/olin/Robotics/Labyrinth/lerobot") # This links to a lerobot package, which is often local
@@ -556,6 +674,16 @@ class DatasetProcessor:
                     features=features,
                     use_videos=True,
                 )
+                if self.out.write_modality_json:
+                    modality_path = output_path / "meta" / "modality.json"
+                    if not modality_path.exists():
+                        self._write_modality_json(
+                            modality_path=modality_path,
+                            joints=state_cols,
+                            n_pinch=1,
+                            video_key=self.out.camera_name,
+                            task=representative_segment.task
+                        )
             case 31:
                 from lerobot.datasets.language import language_feature_info
                 # Build the features schema from the first segment's state columns
