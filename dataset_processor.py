@@ -15,6 +15,7 @@ from PIL import Image
 class DelphiDataExpectation:
     use_episode_uuid_as_file_stem = False
     use_subdirs_as_compound_tasks = False
+    has_segments = True
     pass
 """
     tasks_filename      : str
@@ -118,12 +119,25 @@ class V3_Delphi27_CompoundTaskFolders(DelphiDataExpectation):
     segment_time_basis    = "epoch_seconds"      # how start/end times are expressed on Segment
     segment_boundary      = "inclusive" 
 
+class V3_Delphi27_Composite_NoSegments(DelphiDataExpectation):
+    has_segments = False
+    use_episode_uuid_as_file_stem = True
+    episode_metadata = ".episode_metadata.json"
+    state_filename     = ".robot_posture_1.csv"
+    video_filenames      = [".camera_1.30fps.composite.mp4"]
+    joints_timestamp_col  = "Timestamp"
+    joints_source_col     = "Source"
+    joints_joint_col      = "Joint"
+    joints_position_cols  = ["PositionX", "PositionY", "PositionZ"]
+    joints_rotation_cols  = ["RotationX", "RotationY", "RotationZ", "RotationW"]
+    joints_pinch_col      = "PinchAmount"
 @dataclass
 class OutputConfig:
     version = None
     fps = 30
     merge_handedness_with_joint_name = False # overriden
     use_first_person = True
+    proprioception_mode = None
 """
     robot_type: str
 """
@@ -141,8 +155,26 @@ class EgoCentricNoOverlayLeRobot21(OutputConfig):
     robot_type = "human"
     camera_name = "head" # Just one camera - bound to fail later
     merge_handedness_with_joint_name = True
-    data_keys_to_exclude = ["base", "shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"]
     
+    #data_keys_to_exclude = ["base", "shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"]
+
+class LeRobot21Pose(OutputConfig):
+    fps = 30
+    version = 21
+    robot_type = "rendered_ur5"
+    camera_name = "head" # Just one camera - bound to fail later
+    merge_handedness_with_joint_name = True
+    proprioception_mode = "target_pose"
+    data_keys_to_exclude = ["base", "shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"] 
+
+class LeRobot21Joints(OutputConfig):
+    fps = 30
+    version = 21
+    robot_type = "rendered_ur5"
+    camera_name = "head" # Just one camera - bound to fail later
+    merge_handedness_with_joint_name = True
+    proprioception_mode = "joints"
+    data_keys_to_exclude = ["base", "shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"] 
 
 class EgoCentricNoOverlayLeRobot31(OutputConfig):
     version = 31
@@ -162,12 +194,19 @@ class TaskAnnotation:
 
 @dataclass
 class Episode:
-    """All raw data for one recording session."""
+    """All raw data for one recording session. Output of Delphi27 segmentation-via-transcription."""
     video_paths: List[Path]
     tasks: List[TaskAnnotation]
     state: pd.DataFrame                 # full joint CSV, timestamp-indexed
     compound_task_annotation: str = ""
 
+
+@dataclass
+class SimpleEpisode:
+    """A simplified version of an episode with basic data."""
+    video_paths: List[Path]
+    state: pd.DataFrame                 # full joint CSV, timestamp-indexed
+    task: str
 
 @dataclass
 class Segment:
@@ -301,7 +340,7 @@ def _get_language_persistent_from_episode(episode: Episode) -> list:
         })
     return atoms
 
-def _get_episode_duration(episode: Episode) -> float:
+def _get_episode_duration(episode: Episode | SimpleEpisode) -> float:
     return float(episode.state["epoch_time"].iloc[-1])
 
 def _segment_video_by_task(episode: Episode) -> List[Segment]:
@@ -341,13 +380,16 @@ def _segment_video_by_task(episode: Episode) -> List[Segment]:
 class DatasetProcessor:
     cfg: DelphiDataExpectation
     out: OutputConfig
+    MY_TID2ANNOT8_MAP = {
+        "SortUtensils": "touch the orange"
+    }
     def __init__(self, dde: DelphiDataExpectation, out: OutputConfig):
         self.cfg = dde
         self.out = out
         
         self.output_dataset = None
 
-    def deserialize(self, episode_path: Path) -> Episode:
+    def deserialize_into_episode(self, episode_path: Path) -> Episode:
         episode_path = Path(episode_path)
 
         # --- compound task annotation ---
@@ -367,7 +409,8 @@ class DatasetProcessor:
                 annotation=t[self.cfg.task_annotation_key],
             )
             for t in raw_tasks
-        ]
+            ]
+            
 
         joints_file = episode_path.with_suffix(self.cfg.joints_filename) if self.cfg.use_episode_uuid_as_file_stem else episode_path / self.cfg.joints_filename
         state = pd.read_csv(joints_file)
@@ -419,7 +462,60 @@ class DatasetProcessor:
             compound_task_annotation=compound_task_annotation
         )
 
-    def create_lerobot_dataset(self, representative_segment: Segment | Episode, repo_id: str, output_path: Path):
+    def deserialize_into_simple_episode(self, episode_path: Path) -> SimpleEpisode:
+        # ---------------- metadata -----------------
+        episode_metadata_file = episode_path.with_suffix(self.cfg.episode_metadata) if self.cfg.use_episode_uuid_as_file_stem else episode_path / self.cfg.episode_metadata
+        with episode_metadata_file.open() as f:
+            episode_metadata = json.load(f)
+            try:
+                tid = episode_metadata["content"]["episodeTaskId"]
+                language = DatasetProcessor.MY_TID2ANNOT8_MAP[tid]
+            except KeyError as e:
+                raise ValueError(f"Missing {e}. {DatasetProcessor.MY_TID2ANNOT8_MAP}")
+            print(f"--------------start metadata----------------\n{episode_metadata}\n--------------end metadata----------------")
+
+        # ---------------- state ------------------
+        if not self.out.proprioception_mode == "joints":
+            raise NotImplementedError(f"Only joints proprioception available. RC doesn't output target pose.")
+
+        joints_file = episode_path.with_suffix(self.cfg.state_filename)
+        state = pd.read_csv(joints_file)
+        state.columns = state.columns.str.strip()
+        print(f"{state.columns}")
+        state["epoch_time"] = state[self.cfg.joints_timestamp_col].apply(_iso_to_epoch)
+        state = state.sort_values("epoch_time").reset_index(drop=True)
+
+        # Normalize to relative time: first joint row = t=0.0
+        state["epoch_time"] -= state["epoch_time"].iloc[0]
+        # Pivot: one row per timestamp, one column per (joint, field)
+        state = state.pivot_table(
+            index="epoch_time",
+            columns=self.cfg.joints_joint_col,
+            values=self.cfg.joints_position_cols + self.cfg.joints_rotation_cols + [self.cfg.joints_pinch_col],
+            aggfunc="first"
+        )
+        print(state)
+        # Flatten MultiIndex columns: ("PositionX", "shoulder_pan_joint") → "shoulder_pan_joint/PositionX"
+        state.columns = [f"{joint}/{field}" for field, joint in state.columns]
+        state = state.sort_index().reset_index()
+        print(state)
+
+        # ------------ videos -----------------
+        video_paths = []        
+        for video_filename in self.cfg.video_filenames:
+            video_path = episode_path.with_suffix(video_filename) if self.cfg.use_episode_uuid_as_file_stem else episode_path / video_filename
+            if not video_path.exists():
+                raise FileNotFoundError(f"Expected video at {video_path}")
+            video_paths.append(video_path)
+
+        return SimpleEpisode(
+            video_paths=video_paths,
+            state=state,
+            task=language
+        )
+
+
+    def create_lerobot_dataset(self, representative_segment: Segment | Episode | SimpleEpisode, repo_id: str, output_path: Path):
         sys.path.append("/home/olin/Robotics/Labyrinth/lerobot") # This links to a lerobot package, which is often local
         from lerobot.datasets.lerobot_dataset import LeRobotDataset
         
@@ -639,62 +735,61 @@ class DatasetProcessor:
 
                 print(f"Saving episode '{episode.compound_task_annotation}'.")
                 self.output_dataset.save_episode()
-
-
-
-
-
-                """
-                all_frames = {
-                    self.out.camera_name: _decode_video_segment( # key might want to be video_path.stem !! assumes one video!
-                        video_path,
-                        0.0,  # episode.video_start_time, # episode doesn't carry this - its just the start of the video
-                        _get_episode_duration(episode), # episode.video_end_time, # When the episode ends - Episode also doesn't carry this.
-                        self.out.fps,
-                    )
-                    for video_path in episode.video_paths # there's only one... few
-                }
-
-                # Trim to shortest camera (guards against minor length mismatches)
-                n_frames = min(len(f) for f in all_frames.values()) # 10
-                all_frames = {k: v[:n_frames] for k, v in all_frames.items()}
-                
-                state_cols = [c for c in episode.state.columns if c != "epoch_time"]
-                state_matrix = episode.state[state_cols].to_numpy(dtype=np.float32)
-                seg_epoch_times = episode.state["epoch_time"].to_numpy()
-                frame_times = 0.0 + np.arange(n_frames) / self.out.fps # doesnt run... episode doesn't have that...
-
-                #language_persistent = _get_language_persistent_from_episode(episode)
-
-                # First pass: resolve the state vector for every frame in this segment.
-                frame_states = []
-                for t in frame_times:
-                    row_idx = int(np.argmin(np.abs(seg_epoch_times - t)))
-                    frame_states.append(state_matrix[row_idx])
-
-                # Second pass: essentially action[t] = state[t+1], last frame pads with its own state.
-                for i in range(n_frames):
-                    state_vec = frame_states[i]
-                    action_vec = frame_states[i + 1] if i + 1 < n_frames else frame_states[i]
-
-                    self.output_dataset.add_frame(
-                        {
-                            "observation.state": state_vec,
-                            "action": action_vec,
-                            **{f"observation.images.{cam}": frames[i] for cam, frames in all_frames.items()},
-                            "language_persistent": [],#"language_persistent": language_persistent,
-                            "language_events": [],#"language_events": "[]",   # empty for now unless you have per-frame events
-                            "task": episode.compound_task_annotation,
-                        }
-                    )
-                print(f"Saving episode '{episode.compound_task_annotation}'.")
-                self.output_dataset.save_episode()
-                """
-                
             case _:
                 raise ValueError("Please specify in the output config a LeRobotDataset version (e.g 31 for v3.1). Supported: v3.1 and v2.1")
         return
+    
+    def write_simple_episode_to_lerobot_dataset(self,
+        simple_episode: SimpleEpisode,
+        repo_id: str,
+        output_path: str | Path
 
+    ):  
+        output_path = Path(output_path)
+
+        if not self.output_dataset:
+            self.create_lerobot_dataset(representative_segment=simple_episode, repo_id=repo_id, output_path=output_path) 
+
+        state_cols = [c for c in simple_episode.state.columns if c != "epoch_time"]
+        state_matrix = simple_episode.state[state_cols].to_numpy(dtype=np.float32)
+        seg_epoch_times = simple_episode.state["epoch_time"].to_numpy()
+        duration = _get_episode_duration(simple_episode)
+
+        generators = {
+            self.out.camera_name: _decode_video_segment_generator(
+                video_path, 0.0, duration, self.out.fps,
+            )
+            for video_path in simple_episode.video_paths
+        }
+
+        prev_state_vec = None
+        prev_cam_dict = None
+
+        for frame_idx, cam_frames in enumerate(zip(*generators.values())):
+            cam_dict = dict(zip(generators.keys(), cam_frames))
+            t = frame_idx / self.out.fps
+            row_idx = int(np.argmin(np.abs(seg_epoch_times - t)))
+            state_vec = state_matrix[row_idx]
+
+            if prev_state_vec is not None:
+                self.output_dataset.add_frame({
+                    "observation.state": prev_state_vec,
+                    "action": state_vec,              # action[t] = state[t+1]
+                    **{f"observation.images.{cam}": img for cam, img in prev_cam_dict.items()}
+                }, task=simple_episode.task)
+            prev_state_vec = state_vec
+            prev_cam_dict = cam_dict
+
+        if prev_state_vec is not None:
+            self.output_dataset.add_frame({
+                "observation.state": prev_state_vec,
+                "action": prev_state_vec,
+                **{f"observation.images.{cam}": img for cam, img in prev_cam_dict.items()}
+            }, task=simple_episode.task)
+
+        print(f"Saving episode '{simple_episode.task}'.")
+        self.output_dataset.save_episode()
+            
 # main tests one episode
 if __name__ == "__main__":
     import sys
@@ -708,4 +803,3 @@ if __name__ == "__main__":
     delphi_episode: Episode = processor.deserialize(Path(sys.argv[1]))
     lerobot_dataset = processor.write_to_lerobot_dataset(delphi_episode, sys.argv[2], sys.argv[3])
     processor.output_dataset.finalize() # v3.1 thing...
-    self.output_dataset.save_episode()

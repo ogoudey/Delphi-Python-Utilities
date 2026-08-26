@@ -1,5 +1,33 @@
 ## DelphiToLeRobot
 
+```mermaid
+graph LR
+    subgraph Delphi
+        direction TD
+        A(camera_1) 
+        D(robot_posture_1)
+        C(human_posture_1)
+        B(overlay_1)
+        
+
+        
+    end
+    
+    subgraph LeRobot-Gr00t pose
+        direction TD
+        A --> Z(video)
+        B --> Z
+        C--> Y(state in pose of ik target)
+    end
+
+    subgraph LeRobot-Gr00t joints
+        direction TD
+        A --> Z2(video)
+        B --> Z2
+        D --> Y2(state in joints)
+    end
+```
+
 ### Delphi => LeRobotDataset
 
 Change `sys.path.append("/home/...)` to your LeRobot install.

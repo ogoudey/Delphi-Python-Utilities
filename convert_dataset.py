@@ -6,7 +6,7 @@ from pathlib import Path
 def get_episode_paths_as_list(dataset_root: Path, use_subdirs_as_compound_tasks: bool):
     delphi_episode_paths = set()
     if use_subdirs_as_compound_tasks:
-        for subdir in root.iterdir():
+        for subdir in dataset_root.iterdir():
             for path in subdir.iterdir():
                 if not path.is_file():
                     continue
@@ -15,10 +15,13 @@ def get_episode_paths_as_list(dataset_root: Path, use_subdirs_as_compound_tasks:
                     continue
                 delphi_episode_paths.add(path)
     else:
-        for path in root.iterdir():
+        for path in dataset_root.iterdir():
             if not path.is_file():
                 continue
-            path = path.with_suffix("")
+            print(path)
+            uuid = path.stem.split('.', 1)[0]
+            path = path.with_name(uuid)
+            print(path)
             if path in delphi_episode_paths:
                 continue
             delphi_episode_paths.add(path)
