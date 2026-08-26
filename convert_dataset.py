@@ -1,4 +1,4 @@
-from dataset_processor import DatasetProcessor, V3_Delphi27, EgoCentricNoOverlayLeRobot21
+from dataset_processor import DatasetProcessor, V3_Delphi27_CompoundTaskFolders, EgoCentricNoOverlayLeRobot21
 import sys
 from pathlib import Path
 
@@ -27,7 +27,7 @@ def get_episode_paths_as_list(dataset_root: Path, use_subdirs_as_compound_tasks:
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Usage: python3 convert_dataset.py <dataset_path> <repo_id> <output_path>")
-    processor = DatasetProcessor(V3_Delphi27_CompoundTaskFolders(), EgoCentricNoOverlayLeRobot31())
+    processor = DatasetProcessor(V3_Delphi27_CompoundTaskFolders(), EgoCentricNoOverlayLeRobot21())
     
     root = Path(sys.argv[1])
     

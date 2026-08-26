@@ -59,4 +59,5 @@ if __name__ == "__main__":
     for delphi_episode_path in delphi_episode_paths:
         delphi_episode = processor.deserialize(delphi_episode_path)
         lerobot_dataset = processor.write_to_lerobot_dataset(delphi_episode, sys.argv[2], sys.argv[3])
-    processor.output_dataset.finalize()
+    if processor.out.version == 31:
+        processor.output_dataset.finalize()
