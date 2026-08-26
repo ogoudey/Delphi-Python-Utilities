@@ -13,7 +13,7 @@ def get_episode_paths_as_list(dataset_root: Path, use_subdirs_as_compound_tasks:
                 path = path.with_suffix("")
                 if path in delphi_episode_paths:
                     continue
-                delphi_episode_paths.append(path)
+                delphi_episode_paths.add(path)
     else:
         for path in root.iterdir():
             if not path.is_file():
