@@ -126,7 +126,7 @@ class V3_Delphi27_Composite_NoSegments(DelphiDataExpectation):
     use_episode_uuid_as_file_stem = True
     episode_metadata = ".episode_metadata.json"
     state_filename     = ".robot_posture_1.csv"
-    video_filenames      = [".camera_1.30fps.composite.mp4"]
+    video_filenames      = [".camera_1.mp4"]
     joints_timestamp_col  = "Timestamp"
     joints_source_col     = "Source"
     joints_joint_col      = "Joint"
@@ -171,6 +171,8 @@ class LeRobot21Pose(OutputConfig):
     merge_handedness_with_joint_name = True
     proprioception_mode = "target_pose"
     data_keys_to_exclude = ["base", "shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"] 
+    target_name = "endEffector"
+    write_modality_json = True
 
 class LeRobot21Joints(OutputConfig):
     fps = 30
@@ -449,7 +451,7 @@ class DatasetProcessor:
             index="epoch_time",
             columns=self.cfg.joints_joint_col,
             values=self.cfg.joints_position_cols + self.cfg.joints_rotation_cols + [self.cfg.joints_pinch_col],
-            aggfunc="first"
+            aggfunc="first",
         )
 
         # Flatten MultiIndex columns: ("PositionX", "shoulder_pan_joint") → "shoulder_pan_joint/PositionX"
@@ -481,63 +483,92 @@ class DatasetProcessor:
                 raise ValueError(f"Missing {e}. {DatasetProcessor.MY_TID2ANNOT8_MAP}")
             print(f"--------------start metadata----------------\n{episode_metadata}\n--------------end metadata----------------")
 
-        # ---------------- state ------------------
-        if not self.out.proprioception_mode == "joints":
-            raise NotImplementedError(f"Only joints proprioception available. RC doesn't output target pose.")
-        
-        joints_file = episode_path.with_suffix(self.cfg.state_filename)
-        state = pd.read_csv(joints_file)
+        state_file = episode_path.with_suffix(self.cfg.state_filename)
+        state = pd.read_csv(state_file)
         state.columns = state.columns.str.strip()  # moved above the calibration call
 
-        if self.cfg.in_local_quaternions and not self.local_quaternion_to_joint_value_map:
-            self._calculate_joint_value_map(state)
-
-        # capture joint order exactly as it appears in the intake sheet,
-        # before sort_values/pivot_table can reorder anything
-        arm_joints = [
-            j for j in pd.unique(state[self.cfg.joints_joint_col])
-            if j not in self.out.data_keys_to_exclude and j != self.cfg.end_effector_name
-        ]
-
+        # Standardize time
         state["epoch_time"] = state[self.cfg.joints_timestamp_col].apply(_iso_to_epoch)
         state = state.sort_values("epoch_time").reset_index(drop=True)
         state["epoch_time"] -= state["epoch_time"].iloc[0]
 
-        state = state.pivot_table(
-            index="epoch_time",
-            columns=self.cfg.joints_joint_col,
-            values=self.cfg.joints_position_cols + self.cfg.joints_rotation_cols + [self.cfg.joints_pinch_col],
-            aggfunc="first"
-        )
+        # Pivot
+        value_cols = self.cfg.joints_position_cols + self.cfg.joints_rotation_cols + [self.cfg.joints_pinch_col]
+        long = state.set_index(["epoch_time", self.cfg.joints_joint_col])[value_cols]
+        state = long.groupby(level=[0, 1]).first().unstack(level=1)
 
-        # ---- apply joint_name -> joint_value ----
-        rx, ry, rz, rw = self.cfg.joints_rotation_cols
+        # ---------------- state ------------------
+        if self.out.proprioception_mode == "joints":
+            if self.cfg.in_local_quaternions and not self.local_quaternion_to_joint_value_map:
+                self._calculate_joint_value_map(state)
 
-        angle_cols = {}
-        for joint in arm_joints:
-            axis_col = self.local_quaternion_to_joint_value_map.get(joint)
-            if axis_col is None:
+            arm_joints = [
+                j for j in pd.unique(state[self.cfg.joints_joint_col])
+                if j not in self.out.data_keys_to_exclude and j != self.cfg.end_effector_name
+            ]
+
+            
+
+            
+
+            # ---- apply joint_name -> joint_value ----
+            rx, ry, rz, rw = self.cfg.joints_rotation_cols
+
+            angle_cols = {}
+            for joint in arm_joints:
+                axis_col = self.local_quaternion_to_joint_value_map.get(joint)
+                if axis_col is None:
+                    raise KeyError(
+                        f"joint '{joint}' has no resolved axis in local_quaternion_to_joint_value_map — "
+                        f"this episode didn't have enough motion to calibrate it, and no earlier "
+                        f"episode did either. Process a higher-motion episode for this joint first."
+                    )
+                component = state[(axis_col, joint)]
+                w = state[(rw, joint)]
+                angle_cols[joint] = np.unwrap(2.0 * np.arctan2(component, w))
+
+            # gripper + final assembly — once, outside the loop
+            gripper_col = ("PinchAmount", self.cfg.end_effector_name)
+            if gripper_col not in state.columns:
                 raise KeyError(
-                    f"joint '{joint}' has no resolved axis in local_quaternion_to_joint_value_map — "
-                    f"this episode didn't have enough motion to calibrate it, and no earlier "
-                    f"episode did either. Process a higher-motion episode for this joint first."
+                    f"expected pinch column {gripper_col} not found — check that "
+                    f"'{self.cfg.end_effector_name}' is the exact joint-name value in "
+                    f"{self.cfg.joints_joint_col} and 'PinchAmount' is in the values list "
+                    f"passed to pivot_table."
                 )
-            component = state[(axis_col, joint)]
-            w = state[(rw, joint)]
-            angle_cols[f"{joint}"] = np.unwrap(2.0 * np.arctan2(component, w))
+            gripper_series = state[gripper_col]
 
-        gripper_col = ("PinchAmount", self.cfg.end_effector_name)
-        if gripper_col not in state.columns:
-            raise KeyError(
-                f"expected pinch column {gripper_col} not found — check that "
-                f"'{self.cfg.end_effector_name}' is the exact joint-name value in "
-                f"{self.cfg.joints_joint_col} and 'PinchAmount' is in the values list "
-                f"passed to pivot_table."
-            )
-        gripper_series = state[gripper_col]
+            state = pd.DataFrame({**angle_cols, "gripper": gripper_series}, index=state.index)
+            state = state.sort_index().reset_index()
+        elif self.out.proprioception_mode == "target_pose":
+            target_pos_cols = self.cfg.joints_position_cols   # e.g. ["PositionX", "PositionY", "PositionZ"]
+            target_rot_cols = self.cfg.joints_rotation_cols   # e.g. ["RotationX", "RotationY", "RotationZ", "RotationW"]
 
-        state = pd.DataFrame({**angle_cols, "gripper": gripper_series}, index=state.index)
-        state = state.sort_index().reset_index()
+            target_cols = {}
+            for col in target_pos_cols + target_rot_cols:
+                key = (col, self.out.target_name)
+                if key not in state.columns:
+                    raise KeyError(
+                        f"expected target column {key} not found — check that "
+                        f"'{self.out.target_name}' is the exact row value in "
+                        f"{self.cfg.joints_joint_col}, and that {col} is in the "
+                        f"values list passed to pivot_table."
+                    )
+                target_cols[f"{col}"] = state[key]
+
+            gripper_col = ("PinchAmount", self.cfg.end_effector_name)
+            if gripper_col not in state.columns:
+                raise KeyError(
+                    f"expected pinch column {gripper_col} not found — check that "
+                    f"'{self.cfg.end_effector_name}' is the exact joint-name value in "
+                    f"{self.cfg.joints_joint_col} and 'PinchAmount' is in the values list "
+                    f"passed to pivot_table."
+                )
+            gripper_series = state[gripper_col]
+
+            state = pd.DataFrame({**target_cols, "gripper": gripper_series}, index=state.index)
+            state = state.sort_index().reset_index()
+        
 
         # ------------ videos -----------------
         video_paths = []        
