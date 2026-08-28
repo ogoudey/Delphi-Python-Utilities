@@ -56,7 +56,7 @@ if __name__ == "__main__":
     processor = DatasetProcessor(expectation_class(), out_format_class())
         
     root = Path(args.source)
-    output_dir_name = f"tmp/{str(uuid.uuid4())[:6]}"
+    output_dir_name = args.destination
     repo_id = f"local/{output_dir_name}"
     print(f"{root} => {output_dir_name}")
     
