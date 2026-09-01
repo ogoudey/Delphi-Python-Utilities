@@ -632,37 +632,7 @@ class DatasetProcessor:
 
             self.local_quaternion_to_joint_value_map[joint] = axis_col
     
-    def _write_modality_json(self, modality_path, joints, n_pinch, video_key, task):
-        """
-        State/action layout built above:
-            [joint_0/rot_0 .. joint_0/rot_k, joint_1/rot_0 .. , ..., pinch_0 .. pinch_{n_pinch-1}]
-        i.e. rotation fields per joint in canonical order, then pinch dims.
-        Assumes your action-building code produces the SAME layout — verify that
-        separately, this doesn't check it.
-        """
-        n_rotation_dims = (len(joints) - 1)
-
-        modality = {
-            "state": {
-                "joint_rotation": {"start": 0, "end": n_rotation_dims},
-                "gripper": {"start": n_rotation_dims, "end": n_rotation_dims + n_pinch},
-            },
-            "action": {
-                "joint_rotation": {"start": 0, "end": n_rotation_dims},
-                "gripper": {"start": n_rotation_dims, "end": n_rotation_dims + n_pinch},
-            },
-            "video": {
-                video_key: {"original_key": f"observation.images.{video_key}"}
-            },
-            "annotation": {
-                "human.action.task_description": {}
-            },
-        }
-        modality_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(modality_path, "w") as f:
-            json.dump(modality, f, indent=2)
-
-        print(f"wrote {modality_path} | joints={joints} | rot_dims={n_rotation_dims} | pinch_dims={n_pinch}")
+    
 
     def create_lerobot_dataset(self, representative_segment: Segment | Episode | SimpleEpisode, repo_id: str, output_path: Path):
         sys.path.append("/home/olin/Robotics/Labyrinth/lerobot") # This links to a lerobot package, which is often local
@@ -707,14 +677,29 @@ class DatasetProcessor:
                 )
                 if self.out.write_modality_json:
                     modality_path = output_path / "meta" / "modality.json"
+                    configuration_path = output_path / "meta" / "python" / "rendered_ur5_config.py"
                     if not modality_path.exists():
-                        self._write_modality_json(
+                        import groot_stuff
+                        groot_stuff._write_modality_json_and_config(
                             modality_path=modality_path,
-                            joints=state_cols,
+                            config_path=configuration_path,
+                            embodiment_name="rendered_ur5",
+                            joints=list(range(8)),  # -> n_rotation_dims = 7
                             n_pinch=1,
-                            video_key=self.out.camera_name,
-                            task=representative_segment.task
+                            video_key="head",
+                            joint_key_name="target_pose",
+                            gripper_key_name="gripper",
+                            joint_action_type="EEF",  # <-- confirm this against your actual data
                         )
+
+
+                        #groot_stuff.write_modality_json(
+                        #    modality_path=modality_path,
+                        #    joints=state_cols,
+                        #    n_pinch=1,
+                        #    video_key=self.out.camera_name,
+                        #    task=representative_segment.task
+                        #)
             case 31:
                 from lerobot.datasets.language import language_feature_info
                 # Build the features schema from the first segment's state columns
