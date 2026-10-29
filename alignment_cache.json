@@ -1,0 +1,1162 @@
+{
+ "0c107194-e0d7-42c7-8b03-dee2deb66cd9": {
+  "lag": 2.1727800642340336,
+  "r": 0.7001903224640464,
+  "second_r": 0.27283725263815545,
+  "lag_first_half": 2.2051754498648135,
+  "lag_second_half": 2.1791761919452317,
+  "video_first_pts": 0.354,
+  "video_last_pts": 75.71306666666666,
+  "n_video_frames": 1559
+ },
+ "1a419da7-9a3c-47de-b0ed-245d42c5342a": {
+  "lag": 2.084455071381687,
+  "r": 0.7029100920203925,
+  "second_r": 0.2107369475626209,
+  "lag_first_half": 2.1023519924823892,
+  "lag_second_half": 2.0724941008732354,
+  "video_first_pts": 1.287,
+  "video_last_pts": 65.81166666666667,
+  "n_video_frames": 1094
+ },
+ "350f4d32-9e92-419d-bfc5-c55e354f145f": {
+  "lag": 1.4330499293611596,
+  "r": 0.5558091175523358,
+  "second_r": 0.35056997778539206,
+  "lag_first_half": 1.2610570974256796,
+  "lag_second_half": 1.435330405804785,
+  "video_first_pts": 0.514,
+  "video_last_pts": 70.72075555555556,
+  "n_video_frames": 1180
+ },
+ "3b78d7be-700c-4469-84b2-d21c2e1786a1": {
+  "lag": 2.1297861600648686,
+  "r": 0.7154822629357163,
+  "second_r": 0.21282986920127234,
+  "lag_first_half": 2.1279479864589224,
+  "lag_second_half": 2.1272275562076297,
+  "video_first_pts": 1.164,
+  "video_last_pts": 70.22244444444445,
+  "n_video_frames": 1192
+ },
+ "1d5aa139-b535-44cf-a1b7-f5a9de7e033f": {
+  "lag": 2.0294740695361493,
+  "r": 0.5693665719718479,
+  "second_r": 0.20113273933058992,
+  "lag_first_half": 2.03201093992278,
+  "lag_second_half": 2.023418394292359,
+  "video_first_pts": 0.579,
+  "video_last_pts": 72.23595555555555,
+  "n_video_frames": 1628
+ },
+ "2c6897af-ebde-4350-836e-98bd33c446a1": {
+  "lag": 2.376839567764552,
+  "r": 0.6442420784310464,
+  "second_r": 0.33104759726549277,
+  "lag_first_half": 2.3710438552522928,
+  "lag_second_half": 2.378565249415965,
+  "video_first_pts": 0.274,
+  "video_last_pts": 75.80435555555556,
+  "n_video_frames": 1690
+ },
+ "3d4009ce-510d-4d54-90a6-94d91bd01c8b": {
+  "lag": 2.3531274786333674,
+  "r": 0.6863494861809876,
+  "second_r": 0.23884901512699838,
+  "lag_first_half": 2.338623160430005,
+  "lag_second_half": 2.357245286607388,
+  "video_first_pts": 0.3,
+  "video_last_pts": 78.51146666666666,
+  "n_video_frames": 1766
+ },
+ "2b09bd88-4775-42e3-b06d-8ad0ca9cdc3b": {
+  "lag": 2.1033155994682593,
+  "r": 0.6089769158518518,
+  "second_r": 0.23546414039675576,
+  "lag_first_half": 2.0993141536457114,
+  "lag_second_half": 2.1049104443253706,
+  "video_first_pts": 0.532,
+  "video_last_pts": 78.55185555555556,
+  "n_video_frames": 1748
+ },
+ "12b0e0fb-569f-4593-91bf-7ef3d00da19f": {
+  "lag": 2.6785312594687714,
+  "r": 0.6554927350260759,
+  "second_r": 0.29283892167903836,
+  "lag_first_half": 2.6740938840148685,
+  "lag_second_half": 2.681215638676441,
+  "video_first_pts": 1.289,
+  "video_last_pts": 81.44425555555556,
+  "n_video_frames": 1827
+ },
+ "3776f4e7-5fde-4f03-9178-a5276eea5434": {
+  "lag": 2.4218639007179505,
+  "r": 0.7050357311245593,
+  "second_r": 0.3131074022437363,
+  "lag_first_half": 2.425933988769182,
+  "lag_second_half": 2.4190777357788082,
+  "video_first_pts": 0.86,
+  "video_last_pts": 87.30522222222223,
+  "n_video_frames": 1561
+ },
+ "0e6a6d36-6757-4e4f-9d5a-01dd335320c5": {
+  "lag": 2.2036943356490712,
+  "r": 0.8303266697768114,
+  "second_r": 0.27073237458499755,
+  "lag_first_half": 2.2062636138041603,
+  "lag_second_half": 2.202680078230358,
+  "video_first_pts": 0.384,
+  "video_last_pts": 87.26455555555556,
+  "n_video_frames": 1977
+ },
+ "3ee67bfd-acd6-466e-abcf-e6aaad7c19b8": {
+  "lag": 2.187112391987426,
+  "r": 0.7912978767663034,
+  "second_r": 0.46916802768500443,
+  "lag_first_half": 2.1815515392162026,
+  "lag_second_half": 2.1963505655144577,
+  "video_first_pts": 0.298,
+  "video_last_pts": 69.44956666666667,
+  "n_video_frames": 1613
+ },
+ "42603f6b-d8a5-463d-b3c8-a5b00e34c346": {
+  "lag": 2.1768491630256444,
+  "r": 0.6430076539805161,
+  "second_r": 0.29393016693199875,
+  "lag_first_half": 2.1591242440628067,
+  "lag_second_half": 2.176975078183823,
+  "video_first_pts": 0.513,
+  "video_last_pts": 80.82196666666667,
+  "n_video_frames": 1819
+ },
+ "42b0a063-d3b5-426f-a35b-017aae774b25": {
+  "lag": 2.1458258492535522,
+  "r": 0.7497237546788976,
+  "second_r": 0.2713132455201521,
+  "lag_first_half": 2.1408890839294727,
+  "lag_second_half": 2.146291205490557,
+  "video_first_pts": 0.521,
+  "video_last_pts": 82.74114444444444,
+  "n_video_frames": 1862
+ },
+ "496defc9-b278-4ed7-9781-6c4faca84b7a": {
+  "lag": 2.3163418724815092,
+  "r": 0.6722477508479939,
+  "second_r": 0.1724216923357456,
+  "lag_first_half": 2.4935943308595983,
+  "lag_second_half": 2.3046067712511613,
+  "video_first_pts": 1.126,
+  "video_last_pts": 84.27425555555556,
+  "n_video_frames": 1457
+ },
+ "5a940411-c3dc-4659-b490-8c84cf6ec086": {
+  "lag": 1.9767634886299748,
+  "r": 0.635150839741853,
+  "second_r": 0.43249963343449177,
+  "lag_first_half": 1.990060784201326,
+  "lag_second_half": 1.971115581120572,
+  "video_first_pts": 0.995,
+  "video_last_pts": 73.86664444444445,
+  "n_video_frames": 1422
+ },
+ "57b088f0-ae83-42d5-b928-9df0558131d6": {
+  "lag": 1.8479205235852072,
+  "r": 0.6779772903390007,
+  "second_r": 0.15181105178974358,
+  "lag_first_half": 1.8574882745403134,
+  "lag_second_half": 1.8325937129424985,
+  "video_first_pts": 1.611,
+  "video_last_pts": 78.66692222222223,
+  "n_video_frames": 1385
+ },
+ "6873b152-baa8-4b8c-8566-249147ac50e8": {
+  "lag": 1.9003237011743197,
+  "r": 0.6990688476825814,
+  "second_r": 0.1952017243944313,
+  "lag_first_half": 1.9027834114053828,
+  "lag_second_half": 1.897458277455181,
+  "video_first_pts": 1.633,
+  "video_last_pts": 78.52035555555555,
+  "n_video_frames": 1405
+ },
+ "5532d4eb-d262-47df-abce-b69a07821233": {
+  "lag": 1.9546350829635915,
+  "r": 0.7814887437193865,
+  "second_r": 0.2740819821581957,
+  "lag_first_half": 1.946757510596519,
+  "lag_second_half": 1.9629821091418673,
+  "video_first_pts": 0.761,
+  "video_last_pts": 78.41662222222222,
+  "n_video_frames": 1773
+ },
+ "55161e51-5209-4508-9531-ddf161766ba7": {
+  "lag": 2.10075289809398,
+  "r": 0.6840034430653101,
+  "second_r": 0.2542468005683521,
+  "lag_first_half": 2.099533376031276,
+  "lag_second_half": 2.1097381232829266,
+  "video_first_pts": 1.117,
+  "video_last_pts": 86.72917777777778,
+  "n_video_frames": 1678
+ },
+ "606e1a69-0e89-4804-afe0-abeaf0d60c15": {
+  "lag": 2.194830488392038,
+  "r": 0.6531421963526076,
+  "second_r": 0.28820353095566376,
+  "lag_first_half": 2.193915139265719,
+  "lag_second_half": 2.1950050572717226,
+  "video_first_pts": 0.528,
+  "video_last_pts": 79.96501111111111,
+  "n_video_frames": 1768
+ },
+ "75e783f4-7fbb-4e1d-be1b-1f7ca12e3e42": {
+  "lag": 2.4479589731123803,
+  "r": 0.6464866097279894,
+  "second_r": 0.29360190196702585,
+  "lag_first_half": 2.444559127618245,
+  "lag_second_half": 2.452760546310109,
+  "video_first_pts": 0.282,
+  "video_last_pts": 75.9267,
+  "n_video_frames": 1704
+ },
+ "89a251fc-5ac2-4c6b-abc1-37383572ebc5": {
+  "lag": 2.0741199680946107,
+  "r": 0.7362910009878172,
+  "second_r": 0.2786635571533194,
+  "lag_first_half": 2.093150226351174,
+  "lag_second_half": 2.0561817039610757,
+  "video_first_pts": 1.24,
+  "video_last_pts": 75.98866666666666,
+  "n_video_frames": 1433
+ },
+ "779bb5f2-f9d6-48cb-ba87-1af9112eb877": {
+  "lag": 2.183327957280771,
+  "r": 0.7784696219181256,
+  "second_r": 0.4168008822421011,
+  "lag_first_half": 2.1568940258749327,
+  "lag_second_half": 2.182401317634821,
+  "video_first_pts": 0.446,
+  "video_last_pts": 72.66532222222222,
+  "n_video_frames": 1653
+ },
+ "931d9145-6042-437c-9ad7-c3946809b925": {
+  "lag": 1.6438051111810807,
+  "r": 0.7758003560115503,
+  "second_r": 0.3585954337040033,
+  "lag_first_half": 1.6374300227776102,
+  "lag_second_half": 1.6441446428668003,
+  "video_first_pts": 0.079,
+  "video_last_pts": 68.80498888888889,
+  "n_video_frames": 1205
+ },
+ "863deef3-f298-493e-bad9-01d0025c0d33": {
+  "lag": 1.7796641895962177,
+  "r": 0.6822569158862762,
+  "second_r": 0.26677305655833405,
+  "lag_first_half": 1.7847907856065508,
+  "lag_second_half": 1.7709795139981759,
+  "video_first_pts": 0.859,
+  "video_last_pts": 74.90005555555555,
+  "n_video_frames": 1683
+ },
+ "8cabbea7-6947-409d-b0ea-d6011404becb": {
+  "lag": 2.3120908116114927,
+  "r": 0.7052140302832673,
+  "second_r": 0.28969095603951117,
+  "lag_first_half": 2.309512231693533,
+  "lag_second_half": 2.317378982731627,
+  "video_first_pts": 0.446,
+  "video_last_pts": 73.06586666666666,
+  "n_video_frames": 1662
+ },
+ "8d10d2f8-1001-483e-84b0-4ff8d405873e": {
+  "lag": 1.8121976670538942,
+  "r": 0.6761296822049964,
+  "second_r": 0.19944829415599108,
+  "lag_first_half": 1.8325004839778276,
+  "lag_second_half": 1.7991695472004055,
+  "video_first_pts": 1.575,
+  "video_last_pts": 75.57964444444444,
+  "n_video_frames": 1337
+ },
+ "8b17a3ae-4d11-453b-8751-5051093bcc82": {
+  "lag": 2.115172723295115,
+  "r": 0.7585056515284634,
+  "second_r": 0.3376693350861596,
+  "lag_first_half": 2.119782678567315,
+  "lag_second_half": 2.101674420012027,
+  "video_first_pts": 0.601,
+  "video_last_pts": 80.82422222222222,
+  "n_video_frames": 1845
+ },
+ "97193336-6335-4102-a903-ed9e897cc317": {
+  "lag": 2.060842010868642,
+  "r": 0.6671965457077637,
+  "second_r": 0.2652796714302641,
+  "lag_first_half": 2.0597809793759962,
+  "lag_second_half": 2.0614018971063626,
+  "video_first_pts": 0.599,
+  "video_last_pts": 79.69962222222222,
+  "n_video_frames": 1796
+ },
+ "8fcad638-f08c-4e54-b636-363fce479dd1": {
+  "lag": 2.2533005536270014,
+  "r": 0.7585855247411988,
+  "second_r": 0.38082848276837916,
+  "lag_first_half": 2.251369812542766,
+  "lag_second_half": 2.2525140600027225,
+  "video_first_pts": 0.375,
+  "video_last_pts": 81.82094444444445,
+  "n_video_frames": 1851
+ },
+ "97f7e92e-fe05-4bbb-80bc-e885ae1ae1ff": {
+  "lag": 1.3831091712052226,
+  "r": 0.7618069387173098,
+  "second_r": 0.3586437130164669,
+  "lag_first_half": 1.3865683960884088,
+  "lag_second_half": 1.3798469842437868,
+  "video_first_pts": 0.105,
+  "video_last_pts": 64.8120888888889,
+  "n_video_frames": 1340
+ },
+ "997e341d-51d3-4c66-8660-3ab02637267a": {
+  "lag": 2.1165023995445362,
+  "r": 0.6650109850099892,
+  "second_r": 0.2149519186267121,
+  "lag_first_half": 2.11843876546903,
+  "lag_second_half": 2.1217336676023426,
+  "video_first_pts": 1.306,
+  "video_last_pts": 72.76518888888889,
+  "n_video_frames": 1221
+ },
+ "99572902-5e5b-491a-b9a5-eda6a840066c": {
+  "lag": 1.9782587964018743,
+  "r": 0.7841757794664685,
+  "second_r": 0.29337175685143535,
+  "lag_first_half": 1.9804812336971478,
+  "lag_second_half": 1.9728154240544797,
+  "video_first_pts": 0.837,
+  "video_last_pts": 69.24114444444444,
+  "n_video_frames": 1431
+ },
+ "ad6e203d-91fa-4350-ba71-f03fb9ecda8b": {
+  "lag": 2.5028381111055307,
+  "r": 0.6502562748283213,
+  "second_r": 0.25309856737249065,
+  "lag_first_half": 2.4953180974125324,
+  "lag_second_half": 2.5107262561837485,
+  "video_first_pts": 0.63,
+  "video_last_pts": 73.88142222222223,
+  "n_video_frames": 1250
+ },
+ "b8816d8f-d571-4681-ab79-c8420ac40a70": {
+  "lag": 1.7086361998599329,
+  "r": 0.7019708584824969,
+  "second_r": 0.33615195756560673,
+  "lag_first_half": 1.720466931909663,
+  "lag_second_half": 1.6973143618708475,
+  "video_first_pts": 0.013,
+  "video_last_pts": 73.03862222222222,
+  "n_video_frames": 1223
+ },
+ "a9266a3a-2a1f-4faf-bbd7-975272a849fc": {
+  "lag": 2.049143571393181,
+  "r": 0.6497671014916648,
+  "second_r": 0.2541284699954553,
+  "lag_first_half": 2.0475757265048005,
+  "lag_second_half": 2.0507678532315583,
+  "video_first_pts": 1.121,
+  "video_last_pts": 80.97573333333334,
+  "n_video_frames": 1528
+ },
+ "e8b00dc4-51ff-4cea-91dc-0426f5b4f887": {
+  "lag": 2.169062671129938,
+  "r": 0.769533620240644,
+  "second_r": 0.3064300063860307,
+  "lag_first_half": 2.1743514727620745,
+  "lag_second_half": 2.1615994165398655,
+  "video_first_pts": 1.272,
+  "video_last_pts": 67.21518888888889,
+  "n_video_frames": 1154
+ },
+ "e2a5cda0-80f0-4556-976c-737f23c7b424": {
+  "lag": 2.2185514297406534,
+  "r": 0.7125994083391266,
+  "second_r": 0.1881758386567779,
+  "lag_first_half": 2.2205076252940836,
+  "lag_second_half": 2.174749609220875,
+  "video_first_pts": 0.613,
+  "video_last_pts": 70.4456888888889,
+  "n_video_frames": 1455
+ },
+ "ccd3fa92-2043-45c3-9a10-f260cc2e730b": {
+  "lag": 2.0750883101002033,
+  "r": 0.697444197187215,
+  "second_r": 0.25135283030013883,
+  "lag_first_half": 2.0742425307211043,
+  "lag_second_half": 2.0763172624282604,
+  "video_first_pts": 0.798,
+  "video_last_pts": 90.05263333333333,
+  "n_video_frames": 1840
+ },
+ "e165b86d-9295-49b9-a9d5-9aadf1c486fd": {
+  "lag": 1.8692387391352114,
+  "r": 0.7372021353839903,
+  "second_r": 0.2805743080751776,
+  "lag_first_half": 1.870986124853926,
+  "lag_second_half": 1.869174006795442,
+  "video_first_pts": 0.989,
+  "video_last_pts": 94.47877777777778,
+  "n_video_frames": 1957
+ },
+ "f95cd44e-dace-4716-87a9-87a72716a757": {
+  "lag": 2.461799788015312,
+  "r": 0.7523300384777826,
+  "second_r": 0.2658141854205645,
+  "lag_first_half": 2.458718041930911,
+  "lag_second_half": 2.4632777966349835,
+  "video_first_pts": 1.195,
+  "video_last_pts": 66.85874444444444,
+  "n_video_frames": 1143
+ },
+ "f8871456-6033-42e5-bd02-bf0b195f376b": {
+  "lag": 1.9428974635276326,
+  "r": 0.7746520199131595,
+  "second_r": 0.2839426019220385,
+  "lag_first_half": 1.9425452749903123,
+  "lag_second_half": 1.9435644742674643,
+  "video_first_pts": 1.519,
+  "video_last_pts": 81.00535555555555,
+  "n_video_frames": 1392
+ },
+ "0cd19f55-cb12-4e3d-9757-0e8f7155b26f": {
+  "lag": 1.2898324342319571,
+  "r": 0.8421194617990515,
+  "second_r": 0.4832973898431721,
+  "lag_first_half": 1.2897034422962759,
+  "lag_second_half": 1.2888876831030514,
+  "video_first_pts": 0.012,
+  "video_last_pts": 51.68203333333334,
+  "n_video_frames": 1167
+ },
+ "f99bc254-763d-45a5-bef9-254ef4c40d7d": {
+  "lag": 2.02269958676323,
+  "r": 0.7768891051846338,
+  "second_r": 0.3901466788490944,
+  "lag_first_half": 2.04420693019239,
+  "lag_second_half": 2.011007628533885,
+  "video_first_pts": 0.519,
+  "video_last_pts": 73.31167777777777,
+  "n_video_frames": 1688
+ },
+ "fd03c69a-565a-4ef8-965a-be809ad42eb3": {
+  "lag": 1.9254076086392258,
+  "r": 0.7327380146460071,
+  "second_r": 0.3246352137396201,
+  "lag_first_half": 1.9135170837229252,
+  "lag_second_half": 1.8078277768682425,
+  "video_first_pts": 0.598,
+  "video_last_pts": 74.43167777777778,
+  "n_video_frames": 1712
+ },
+ "0d9e4974-b9bd-422e-a2d3-59a808b6957b": {
+  "lag": 1.57031011473905,
+  "r": 0.6738286813351135,
+  "second_r": 0.14441025653782769,
+  "lag_first_half": 1.5768479086152063,
+  "lag_second_half": 1.559960592979885,
+  "video_first_pts": 1.198,
+  "video_last_pts": 70.50742222222222,
+  "n_video_frames": 1522
+ },
+ "13590222-80a2-4019-8636-e3460346acc2": {
+  "lag": 1.3863681392791884,
+  "r": 0.8407881189000382,
+  "second_r": 0.1657138624458081,
+  "lag_first_half": 1.3679025138818022,
+  "lag_second_half": 1.3871840910268611,
+  "video_first_pts": 0.006,
+  "video_last_pts": 73.45766666666667,
+  "n_video_frames": 1633
+ },
+ "1c753510-08d8-40be-8536-60291b518ed3": {
+  "lag": 1.7860261222065101,
+  "r": 0.5593142146977718,
+  "second_r": 0.2048367374234888,
+  "lag_first_half": 1.8006171559252846,
+  "lag_second_half": 1.7580967384988282,
+  "video_first_pts": 0.888,
+  "video_last_pts": 69.7814,
+  "n_video_frames": 1519
+ },
+ "009cd75a-6ff6-473d-8812-7177a837a2f8": {
+  "lag": 0.046891575431310825,
+  "r": 0.9469108631478882,
+  "second_r": 0.14402500734813958,
+  "lag_first_half": 0.04490499264546624,
+  "lag_second_half": 0.049744676899095445,
+  "video_first_pts": 0.0,
+  "video_last_pts": 114.72441111111111,
+  "n_video_frames": 2522
+ },
+ "1d20d5c1-d4b1-4ac3-b80d-8fa54c9bcc77": {
+  "lag": -0.004746874057651755,
+  "r": 0.924712479676863,
+  "second_r": 0.18791858480599177,
+  "lag_first_half": -0.022958418842966295,
+  "lag_second_half": -0.0006005993522415901,
+  "video_first_pts": 0.0,
+  "video_last_pts": 85.7504888888889,
+  "n_video_frames": 1910
+ },
+ "1e24b8d2-43d4-41b7-a6ae-10daf3d58fca": {
+  "lag": 1.5335846765619325,
+  "r": 0.5837939934851275,
+  "second_r": 0.23448502684106828,
+  "lag_first_half": 1.5337058392581218,
+  "lag_second_half": 1.5351542240795153,
+  "video_first_pts": 1.115,
+  "video_last_pts": 76.64514444444444,
+  "n_video_frames": 1682
+ },
+ "1f63d5ed-c9c6-48f7-a5e7-75b8ae61514d": {
+  "lag": 1.6333421507814674,
+  "r": 0.6511455522800248,
+  "second_r": 0.3104541926859126,
+  "lag_first_half": 1.6370207970897945,
+  "lag_second_half": 1.6280621912542572,
+  "video_first_pts": 1.132,
+  "video_last_pts": 81.24145555555556,
+  "n_video_frames": 1755
+ },
+ "2e7e680e-f8de-4c65-add7-abdc61fee617": {
+  "lag": 2.6305384209070173,
+  "r": 0.6800583030876336,
+  "second_r": 0.2074160491901972,
+  "lag_first_half": 2.6428960460037794,
+  "lag_second_half": 2.626116653116221,
+  "video_first_pts": 1.267,
+  "video_last_pts": 73.43447777777777,
+  "n_video_frames": 1631
+ },
+ "2cee78a2-9014-4dc8-9948-e5b4eeabc1f5": {
+  "lag": 2.120846449127652,
+  "r": 0.6251451630748218,
+  "second_r": 0.33573039075181416,
+  "lag_first_half": 2.118178290193546,
+  "lag_second_half": 2.1265673195806234,
+  "video_first_pts": 0.629,
+  "video_last_pts": 80.46236666666667,
+  "n_video_frames": 1761
+ },
+ "48963331-6bd4-4517-9bd2-6a5b52bbdb64": {
+  "lag": 2.6794075515949913,
+  "r": 0.5509543041905848,
+  "second_r": 0.24629555114977622,
+  "lag_first_half": 2.680284889725621,
+  "lag_second_half": 2.6793028295413954,
+  "video_first_pts": 1.193,
+  "video_last_pts": 76.6947,
+  "n_video_frames": 1693
+ },
+ "509fcbd7-1b3c-4546-875f-239c889e0d9b": {
+  "lag": 1.4703339157837345,
+  "r": 0.7333091366562433,
+  "second_r": 0.1911258353205668,
+  "lag_first_half": 1.4703248601024164,
+  "lag_second_half": 1.4929167676844695,
+  "video_first_pts": 1.292,
+  "video_last_pts": 71.5012888888889,
+  "n_video_frames": 1542
+ },
+ "5083d5d6-ad50-46bc-983b-edde41b308fd": {
+  "lag": 1.458602147327834,
+  "r": 0.8873051085798738,
+  "second_r": 0.22374322528326304,
+  "lag_first_half": 1.4527286903736372,
+  "lag_second_half": 1.4623011130353598,
+  "video_first_pts": 1.273,
+  "video_last_pts": 77.32905555555556,
+  "n_video_frames": 1684
+ },
+ "578ece0c-ca93-4a9d-bd79-7bbdbffb0a78": {
+  "lag": 1.7897055491760216,
+  "r": 0.6444322128907685,
+  "second_r": 0.28080403459693926,
+  "lag_first_half": 1.7893496585246231,
+  "lag_second_half": 1.7946146225381014,
+  "video_first_pts": 0.999,
+  "video_last_pts": 77.41892222222222,
+  "n_video_frames": 1670
+ },
+ "6d50bdab-7eae-4267-a2b8-28e7cd4d9741": {
+  "lag": 0.16265331635848926,
+  "r": 0.9258486838077743,
+  "second_r": 0.1242575319561297,
+  "lag_first_half": 0.1490508385825219,
+  "lag_second_half": 0.17778850267613022,
+  "video_first_pts": 0.0,
+  "video_last_pts": 51.98186666666667,
+  "n_video_frames": 1188
+ },
+ "579c132a-adab-4a2d-8d6c-8e71d5f416bf": {
+  "lag": 1.8057638434015468,
+  "r": 0.6279612125948634,
+  "second_r": 0.26097703805984734,
+  "lag_first_half": 1.8108537906828324,
+  "lag_second_half": 1.7828291378631735,
+  "video_first_pts": 0.834,
+  "video_last_pts": 70.98223333333334,
+  "n_video_frames": 1554
+ },
+ "6dca0b2f-8012-4626-a645-c9e2d167e79e": {
+  "lag": 1.4283200273890004,
+  "r": 0.7886041266041337,
+  "second_r": 0.564040608082906,
+  "lag_first_half": 1.4376248855552776,
+  "lag_second_half": 1.4221725889533992,
+  "video_first_pts": 1.236,
+  "video_last_pts": 58.4703,
+  "n_video_frames": 1329
+ },
+ "6b20c22e-0867-4ed5-a766-165d17e69e77": {
+  "lag": 1.4590041655907127,
+  "r": 0.731289456258107,
+  "second_r": 0.3890833300924971,
+  "lag_first_half": 1.4543906712923127,
+  "lag_second_half": 1.4633758854016718,
+  "video_first_pts": 1.185,
+  "video_last_pts": 78.20152222222222,
+  "n_video_frames": 1715
+ },
+ "1e32f0a0-001f-4a22-8d12-80bce998c9d7": {
+  "lag": 2.6857720410553307,
+  "r": 0.6605317255002241,
+  "second_r": 0.31125775747028495,
+  "lag_first_half": 2.6815731711618405,
+  "lag_second_half": 2.685531199993851,
+  "video_first_pts": 0.093,
+  "video_last_pts": 160.44967777777777,
+  "n_video_frames": 3664
+ },
+ "774084e4-c936-4ade-8110-b7138544d39b": {
+  "lag": 1.286917062640661,
+  "r": 0.6479413461323066,
+  "second_r": 0.23780711685810985,
+  "lag_first_half": 1.289581747587608,
+  "lag_second_half": 1.2794250445177293,
+  "video_first_pts": 0.031,
+  "video_last_pts": 78.4272111111111,
+  "n_video_frames": 1752
+ },
+ "7e6e055e-f847-46c2-86b3-0d3702b54d2b": {
+  "lag": 2.75063740664383,
+  "r": 0.6022552177847421,
+  "second_r": 0.22616916626105593,
+  "lag_first_half": 2.749461878105852,
+  "lag_second_half": 2.7481104526628055,
+  "video_first_pts": 1.23,
+  "video_last_pts": 77.90935555555555,
+  "n_video_frames": 1711
+ },
+ "7e8b2d44-5922-4ce2-b622-cbd8149bc7dc": {
+  "lag": 1.651718986139947,
+  "r": 0.6800915090532246,
+  "second_r": 0.296870832352592,
+  "lag_first_half": 1.648777740625991,
+  "lag_second_half": 1.6558312531669055,
+  "video_first_pts": 1.106,
+  "video_last_pts": 80.0066,
+  "n_video_frames": 1720
+ },
+ "803d793c-ca94-4d52-ad4c-7b18ff9c9331": {
+  "lag": 1.646402681264084,
+  "r": 0.6891256431529534,
+  "second_r": 0.28446015777508915,
+  "lag_first_half": 1.6485699143151702,
+  "lag_second_half": 1.6444889661411564,
+  "video_first_pts": 1.065,
+  "video_last_pts": 68.04433333333333,
+  "n_video_frames": 1467
+ },
+ "7edce0b7-2f80-4caf-ba58-687ee93a8697": {
+  "lag": 2.1333198330440926,
+  "r": 0.7083496086881155,
+  "second_r": 0.2588300062446192,
+  "lag_first_half": 2.110934439683134,
+  "lag_second_half": 2.140070557413965,
+  "video_first_pts": 0.483,
+  "video_last_pts": 84.54416666666667,
+  "n_video_frames": 1896
+ },
+ "a1b0bc35-998b-4c01-97d5-109c1817115c": {
+  "lag": 1.2750641506994451,
+  "r": 0.8381946620424526,
+  "second_r": 0.5837463346516422,
+  "lag_first_half": 1.271741556799694,
+  "lag_second_half": 1.277308167528923,
+  "video_first_pts": 0.034,
+  "video_last_pts": 49.990744444444445,
+  "n_video_frames": 1143
+ },
+ "806fd70d-0bc7-4b07-bbaf-f28edfa85fbb": {
+  "lag": 1.7345951699102042,
+  "r": 0.6434477558009623,
+  "second_r": 0.27119289876173414,
+  "lag_first_half": 1.7312638189456977,
+  "lag_second_half": 1.736989547165133,
+  "video_first_pts": 0.952,
+  "video_last_pts": 83.90463333333334,
+  "n_video_frames": 1838
+ },
+ "855913ee-013f-442a-adba-b422e16c9b9c": {
+  "lag": 1.6833213683318005,
+  "r": 0.6599199318992047,
+  "second_r": 0.22639757706234,
+  "lag_first_half": 1.6839299887328645,
+  "lag_second_half": 1.6829341076603248,
+  "video_first_pts": 0.861,
+  "video_last_pts": 78.06483333333334,
+  "n_video_frames": 1718
+ },
+ "89b91d9e-c121-45c9-ae49-1b35529770e1": {
+  "lag": 1.8746191234082006,
+  "r": 0.5889670834342814,
+  "second_r": 0.24899718338817686,
+  "lag_first_half": 1.8691368415914118,
+  "lag_second_half": 1.8814419849126556,
+  "video_first_pts": 0.832,
+  "video_last_pts": 76.29102222222222,
+  "n_video_frames": 1651
+ },
+ "96ea6c55-1454-4701-b337-8e21b98fa295": {
+  "lag": 1.8031595693904563,
+  "r": 0.6713786594123843,
+  "second_r": 0.3654215772388765,
+  "lag_first_half": 1.7995503079414494,
+  "lag_second_half": 1.8075309413406562,
+  "video_first_pts": 0.826,
+  "video_last_pts": 84.59513333333334,
+  "n_video_frames": 1883
+ },
+ "a7bdd650-e2cf-40f0-b67a-5dc80a5e5a6d": {
+  "lag": 1.4052913289202835,
+  "r": 0.654113917374457,
+  "second_r": 0.3509406528810212,
+  "lag_first_half": 1.408640077373107,
+  "lag_second_half": 1.403633239930973,
+  "video_first_pts": 1.227,
+  "video_last_pts": 80.9529111111111,
+  "n_video_frames": 1778
+ },
+ "b3f25f39-b98c-4eac-957e-07022f2a35ff": {
+  "lag": 1.9202106238566599,
+  "r": 0.6171450969949659,
+  "second_r": 0.2044297141622515,
+  "lag_first_half": 1.9186043954768501,
+  "lag_second_half": 1.9263478587823868,
+  "video_first_pts": 0.837,
+  "video_last_pts": 90.5791888888889,
+  "n_video_frames": 1966
+ },
+ "c27f3656-54c6-4e85-be08-1cba0edc0795": {
+  "lag": 1.598051881147386,
+  "r": 0.5835818575171581,
+  "second_r": 0.3334059322888792,
+  "lag_first_half": 1.5931405566770287,
+  "lag_second_half": 1.6178274062840066,
+  "video_first_pts": 1.12,
+  "video_last_pts": 75.38954444444444,
+  "n_video_frames": 1667
+ },
+ "c6b69bd0-bf56-462c-82ca-9cd4480c2f67": {
+  "lag": 1.148292913390907,
+  "r": 0.6279036259601188,
+  "second_r": 0.21016118817519538,
+  "lag_first_half": 1.1528191021977512,
+  "lag_second_half": 1.1384929375908024,
+  "video_first_pts": 0.113,
+  "video_last_pts": 73.31178888888888,
+  "n_video_frames": 1638
+ },
+ "cdc2d326-a84a-4d6e-99e0-12bae2e613ee": {
+  "lag": 1.3951872700468675,
+  "r": 0.7395100891230223,
+  "second_r": 0.3144220643039498,
+  "lag_first_half": 1.3896595427372624,
+  "lag_second_half": 1.399511394080707,
+  "video_first_pts": 0.003,
+  "video_last_pts": 74.08514444444444,
+  "n_video_frames": 1626
+ },
+ "d0dd0dd9-bcb6-4d78-a14a-3136b6bb3430": {
+  "lag": 1.8173152304389468,
+  "r": 0.6576703670536916,
+  "second_r": 0.28087112085918015,
+  "lag_first_half": 1.8223822642705718,
+  "lag_second_half": 1.8063489252345946,
+  "video_first_pts": 0.869,
+  "video_last_pts": 70.63393333333333,
+  "n_video_frames": 1522
+ },
+ "e729e10b-82fd-4403-9dac-3326a03a71bd": {
+  "lag": 1.4944359358953967,
+  "r": 0.7537144712627339,
+  "second_r": 0.46730442083074536,
+  "lag_first_half": 1.4784614299939909,
+  "lag_second_half": 1.5048277637132443,
+  "video_first_pts": 1.108,
+  "video_last_pts": 53.467644444444446,
+  "n_video_frames": 1201
+ },
+ "e53e8b24-905a-4815-a8af-37cb05d7d045": {
+  "lag": 1.344834840718523,
+  "r": 0.7401029024989686,
+  "second_r": 0.42369831083438236,
+  "lag_first_half": 1.3392322642901808,
+  "lag_second_half": 1.3681096071966925,
+  "video_first_pts": 0.031,
+  "video_last_pts": 66.88473333333333,
+  "n_video_frames": 1466
+ },
+ "d9352d67-7e45-49f0-a351-20b9bbdee3d3": {
+  "lag": 1.795610989127827,
+  "r": 0.719485349139407,
+  "second_r": 0.21029221569067028,
+  "lag_first_half": 1.7945438117348662,
+  "lag_second_half": 1.7932630084262582,
+  "video_first_pts": 0.96,
+  "video_last_pts": 81.37437777777778,
+  "n_video_frames": 1760
+ },
+ "d7d0dffd-3142-4b5a-b9e3-617945c331f3": {
+  "lag": 1.5545730653111933,
+  "r": 0.599657825542139,
+  "second_r": 0.30080173550715333,
+  "lag_first_half": 1.5512152378970387,
+  "lag_second_half": 1.5563336041511189,
+  "video_first_pts": 1.077,
+  "video_last_pts": 76.09973333333333,
+  "n_video_frames": 1671
+ },
+ "f147d7e1-8f89-47a4-a216-4846cff4cbba": {
+  "lag": 1.2679078399529091,
+  "r": 0.7198497697704824,
+  "second_r": 0.5097940598958446,
+  "lag_first_half": 1.2656610141334685,
+  "lag_second_half": 1.2693554440862675,
+  "video_first_pts": 0.082,
+  "video_last_pts": 52.31272222222222,
+  "n_video_frames": 1197
+ },
+ "ee9f499b-97c5-426f-ae27-59bab6d59b9f": {
+  "lag": 1.5773080840632898,
+  "r": 0.7049176508745998,
+  "second_r": 0.3063390582398154,
+  "lag_first_half": 1.5812714378993027,
+  "lag_second_half": 1.568690245488566,
+  "video_first_pts": 1.128,
+  "video_last_pts": 80.083,
+  "n_video_frames": 1729
+ },
+ "f4d1c68c-717e-490b-868a-a564021d3be0": {
+  "lag": 2.14177330324002,
+  "r": 0.6689159589088782,
+  "second_r": 0.2959571318387916,
+  "lag_first_half": 2.1406025871213505,
+  "lag_second_half": 2.1390068124293946,
+  "video_first_pts": 0.59,
+  "video_last_pts": 78.8137,
+  "n_video_frames": 1721
+ },
+ "ed31d12b-fb7a-4001-9c8b-0c2e2570e64c": {
+  "lag": 1.8972579429328977,
+  "r": 0.7543848031253021,
+  "second_r": 0.3604956257486545,
+  "lag_first_half": 1.891394131952834,
+  "lag_second_half": 1.908657992380672,
+  "video_first_pts": 0.945,
+  "video_last_pts": 86.73623333333333,
+  "n_video_frames": 1886
+ },
+ "fd1bb2e8-a621-4e1a-bdfe-9cdfd72f70f3": {
+  "lag": 1.3545976273919547,
+  "r": 0.6442712137729645,
+  "second_r": 0.21217042148702928,
+  "lag_first_half": 1.3658360590741458,
+  "lag_second_half": 1.3454175334716998,
+  "video_first_pts": 1.266,
+  "video_last_pts": 78.11286666666666,
+  "n_video_frames": 1729
+ },
+ "fc8b7353-9289-493e-a9f4-1ef8aa5fa45e": {
+  "lag": 1.7724738181970712,
+  "r": 0.6544864651381975,
+  "second_r": 0.2913682572439154,
+  "lag_first_half": 1.7696947107129968,
+  "lag_second_half": 1.782361495999373,
+  "video_first_pts": 0.92,
+  "video_last_pts": 90.57118888888888,
+  "n_video_frames": 1971
+ },
+ "0d336d8b-ee75-4a96-9aa8-4537b2c6ea87": {
+  "lag": -0.004613048320483816,
+  "r": 0.8614893150553974,
+  "second_r": 0.25379145011707127,
+  "lag_first_half": 0.011543719913815812,
+  "lag_second_half": -0.008556888781803594,
+  "video_first_pts": 0.0,
+  "video_last_pts": 108.9977,
+  "n_video_frames": 2413
+ },
+ "1f5b6d9c-bdab-480f-b492-ff753158e3b5": {
+  "lag": 0.018036901523580083,
+  "r": 0.9291197355618693,
+  "second_r": 0.24776428095096154,
+  "lag_first_half": 0.02393115587162213,
+  "lag_second_half": -0.0008784044163488229,
+  "video_first_pts": 0.0,
+  "video_last_pts": 107.97745555555555,
+  "n_video_frames": 2549
+ },
+ "28de2875-cc8e-4529-b6dc-865c506ce399": {
+  "lag": 0.040172857930379606,
+  "r": 0.9104024636638677,
+  "second_r": 0.21308317063219115,
+  "lag_first_half": 0.042594245435294234,
+  "lag_second_half": 0.037202802054857285,
+  "video_first_pts": 0.0,
+  "video_last_pts": 108.99842222222222,
+  "n_video_frames": 2567
+ },
+ "3b161ebd-0b69-4e46-947f-90329139f131": {
+  "lag": 0.02149461630998164,
+  "r": 0.8805129453907066,
+  "second_r": 0.1622599393588564,
+  "lag_first_half": 0.03206290962512706,
+  "lag_second_half": 0.005065343179863713,
+  "video_first_pts": 0.0,
+  "video_last_pts": 103.80721111111112,
+  "n_video_frames": 2453
+ },
+ "42606f14-2dfa-4af5-8312-879fec4da7bf": {
+  "lag": 0.016799094401984255,
+  "r": 0.8815804023991038,
+  "second_r": 0.14856319263545165,
+  "lag_first_half": 0.027091700654486094,
+  "lag_second_half": 0.010918808021732613,
+  "video_first_pts": 0.0,
+  "video_last_pts": 114.77726666666666,
+  "n_video_frames": 2201
+ },
+ "4297b3a0-a45d-4306-aa20-e4e3ea8d9082": {
+  "lag": -0.011309293766484945,
+  "r": 0.8608250995072663,
+  "second_r": 0.14974482057003619,
+  "lag_first_half": -0.011295237735940836,
+  "lag_second_half": 0.015148312557958706,
+  "video_first_pts": 0.0,
+  "video_last_pts": 116.98794444444444,
+  "n_video_frames": 2406
+ },
+ "5e7c7dd2-a1fa-4cce-ae41-d1c6600378cd": {
+  "lag": 0.013959842300574222,
+  "r": 0.9259539323431957,
+  "second_r": 0.2291199657395057,
+  "lag_first_half": 0.03213564489742012,
+  "lag_second_half": -0.021006848172430693,
+  "video_first_pts": 0.0,
+  "video_last_pts": 109.92513333333333,
+  "n_video_frames": 2591
+ },
+ "615d39c3-8608-4d17-82de-0907b3c41b92": {
+  "lag": -0.005285830767814085,
+  "r": 0.9176418185200466,
+  "second_r": 0.13364205871582074,
+  "lag_first_half": -0.004301637221275415,
+  "lag_second_half": -0.00401553981591912,
+  "video_first_pts": 0.0,
+  "video_last_pts": 112.97825555555555,
+  "n_video_frames": 2476
+ },
+ "66c5a45b-fd62-4218-9f2b-671c08657dab": {
+  "lag": -0.01351522639970279,
+  "r": 0.8942501596413417,
+  "second_r": 0.26176592572543594,
+  "lag_first_half": 0.014514833970514018,
+  "lag_second_half": -0.012373389223172174,
+  "video_first_pts": 0.0,
+  "video_last_pts": 111.80413333333334,
+  "n_video_frames": 2643
+ },
+ "78c09276-59f9-426d-94f3-51f7a0135688": {
+  "lag": -0.014716932294686794,
+  "r": 0.9210332074841225,
+  "second_r": 0.2561098942925507,
+  "lag_first_half": -0.014531810472625414,
+  "lag_second_half": -0.014305424058013397,
+  "video_first_pts": 0.0,
+  "video_last_pts": 111.98725555555555,
+  "n_video_frames": 2648
+ },
+ "747108c0-14a7-4935-aceb-193de129f661": {
+  "lag": 0.004998318105448616,
+  "r": 0.8858297306079623,
+  "second_r": 0.14570536737743922,
+  "lag_first_half": 0.015872218259026946,
+  "lag_second_half": -0.0005041636292038785,
+  "video_first_pts": 0.0,
+  "video_last_pts": 122.83527777777778,
+  "n_video_frames": 2724
+ },
+ "8fd0453c-3ad1-4e17-a397-82c55fde9bc4": {
+  "lag": 0.01867497278672791,
+  "r": 0.9365121764816953,
+  "second_r": 0.1773704338306416,
+  "lag_first_half": 0.02239004102457326,
+  "lag_second_half": 0.012648270982871915,
+  "video_first_pts": 0.0,
+  "video_last_pts": 106.97625555555555,
+  "n_video_frames": 2527
+ },
+ "97377543-0948-49cf-8594-d2c6258a3aed": {
+  "lag": -0.0014796828752957059,
+  "r": 0.7996516758437547,
+  "second_r": 0.1024047458270522,
+  "lag_first_half": 0.05236311145556738,
+  "lag_second_half": -0.055911933026273924,
+  "video_first_pts": 0.0,
+  "video_last_pts": 109.96416666666667,
+  "n_video_frames": 2604
+ },
+ "98078685-bf02-4203-9c96-75735ca72dde": {
+  "lag": -0.035,
+  "r": 0.3896203399713424,
+  "second_r": 0.18997511548401816,
+  "lag_first_half": -0.03,
+  "lag_second_half": -0.04,
+  "video_first_pts": 0.0,
+  "video_last_pts": 98.98715555555556,
+  "n_video_frames": 2331
+ },
+ "9746b23c-e3dc-4838-9003-dd70e323a8a8": {
+  "lag": -0.0062790630836173445,
+  "r": 0.9254126625580691,
+  "second_r": 0.3053105156913718,
+  "lag_first_half": -0.010950811874713782,
+  "lag_second_half": -0.026920789158939,
+  "video_first_pts": 0.0,
+  "video_last_pts": 116.75093333333334,
+  "n_video_frames": 2758
+ },
+ "a0ac58e9-6751-4b68-9d62-098ab6c6c570": {
+  "lag": -0.013450989831136843,
+  "r": 0.8529922268814479,
+  "second_r": 0.12946027347522154,
+  "lag_first_half": -0.0018565558306740803,
+  "lag_second_half": -0.041709647090829374,
+  "video_first_pts": 0.0,
+  "video_last_pts": 120.98086666666667,
+  "n_video_frames": 2849
+ },
+ "a97e22b0-e5fd-4f4d-ae38-8befae7f3794": {
+  "lag": -0.0037124013785552,
+  "r": 0.882558395513655,
+  "second_r": 0.25898753659058965,
+  "lag_first_half": -0.0024210556501920574,
+  "lag_second_half": -0.017570072060146713,
+  "video_first_pts": 0.0,
+  "video_last_pts": 123.93657777777777,
+  "n_video_frames": 2526
+ },
+ "2d35d58c-6cc4-4f8c-9fbd-c9819295bd2d": {
+  "lag": 0.003560955720226362,
+  "r": 0.8158075121173886,
+  "second_r": 0.26701359130117414,
+  "lag_first_half": -0.013124575289271146,
+  "lag_second_half": 0.007536584993808868,
+  "video_first_pts": 0.0,
+  "video_last_pts": 293.95415555555553,
+  "n_video_frames": 6721
+ },
+ "cb6688f1-f38a-45af-a8b5-c4cf0ea6eac4": {
+  "lag": 0.019433537348396063,
+  "r": 0.9004334355836933,
+  "second_r": 0.2421085189199703,
+  "lag_first_half": 0.020861357712101593,
+  "lag_second_half": 0.017476566896539193,
+  "video_first_pts": 0.0,
+  "video_last_pts": 111.98954444444445,
+  "n_video_frames": 2463
+ },
+ "bb0cd608-bed6-4bae-bb66-69d80aa39da9": {
+  "lag": 0.0019854534365126896,
+  "r": 0.8742325364638817,
+  "second_r": 0.16309722830923867,
+  "lag_first_half": 0.02355218708675856,
+  "lag_second_half": -0.029357477423827265,
+  "video_first_pts": 0.0,
+  "video_last_pts": 115.99756666666667,
+  "n_video_frames": 2737
+ },
+ "ea709097-96be-483b-8721-6698934478fc": {
+  "lag": 0.022237696708058752,
+  "r": 0.9172952365971688,
+  "second_r": 0.22628366456173568,
+  "lag_first_half": 0.03335772226413557,
+  "lag_second_half": 0.020899649481662966,
+  "video_first_pts": 0.0,
+  "video_last_pts": 109.98787777777778,
+  "n_video_frames": 2433
+ },
+ "f09ce123-cc25-4c69-b5aa-fd4fe7eb7947": {
+  "lag": -0.015713572391709462,
+  "r": 0.9151715259218028,
+  "second_r": 0.29907566031071725,
+  "lag_first_half": -0.003101577312347224,
+  "lag_second_half": -0.02296798561793479,
+  "video_first_pts": 0.0,
+  "video_last_pts": 108.98511111111111,
+  "n_video_frames": 2417
+ },
+ "f3c171d0-ed7f-4895-8a9c-3fe22426c11e": {
+  "lag": -0.01779527360038327,
+  "r": 0.9164840727645229,
+  "second_r": 0.3106742925576345,
+  "lag_first_half": -0.013145130592750269,
+  "lag_second_half": -0.047751277139555195,
+  "video_first_pts": 0.0,
+  "video_last_pts": 107.97596666666666,
+  "n_video_frames": 2554
+ },
+ "73a0ca27-59d5-4a42-a87b-a3832b4308e5": {
+  "lag": -0.019389741429710602,
+  "r": 0.8006063139184604,
+  "second_r": 0.26853206737194446,
+  "lag_first_half": -0.018284292122550807,
+  "lag_second_half": -0.012565472977295825,
+  "video_first_pts": 0.0,
+  "video_last_pts": 295.9754888888889,
+  "n_video_frames": 6173
+ },
+ "f0d740f8-8571-47ab-9df3-4caf9aa154a9": {
+  "lag": 0.03506015924571304,
+  "r": 0.8633920022720343,
+  "second_r": 0.23876260392579687,
+  "lag_first_half": 0.03649805315626811,
+  "lag_second_half": 0.03696219553404667,
+  "video_first_pts": 0.0,
+  "video_last_pts": 295.9994111111111,
+  "n_video_frames": 6280
+ },
+ "fd1a8afa-23c0-40d5-b088-66bff1db154a": {
+  "lag": 0.038411516214657576,
+  "r": 0.806706236765543,
+  "second_r": 0.2387290588941963,
+  "lag_first_half": 0.04374669781952696,
+  "lag_second_half": 0.04037879667329389,
+  "video_first_pts": 0.0,
+  "video_last_pts": 283.96573333333333,
+  "n_video_frames": 6550
+ }
+}

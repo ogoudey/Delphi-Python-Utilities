@@ -1,0 +1,17 @@
+# Claude Code
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+.mcp.json
+claude_here.sh
+
+# Claude's scratch work (probes, logs, contact sheets)
+.scratch/
+
+.venv-lerobot/
+__pycache__/
+root/
+zipped_data/
+unzipped_data/
+lerobot_v3_*
+full.log

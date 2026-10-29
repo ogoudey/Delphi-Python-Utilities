@@ -9,11 +9,21 @@ if __name__ == "__main__":
     argument_parser.add_argument("source", type=str, help="Source dataset location")
     argument_parser.add_argument("destination", type=str, help="Output location")
     argument_parser.add_argument("in_expectation", type=str, help="delphi_flat | delphi_structured | delphi_flat_composite_no_segments")
-    argument_parser.add_argument("out_format", type=str, help="lerobot_v21_no_overlay | lerobot_v21_overlay | lerobot_v30_no_overlay | lerobot_v30_overlay | pi_data_sharable")
+    argument_parser.add_argument("out_format", type=str, help="lerobot_v21_no_overlay | lerobot_v21_overlay | lerobot_v30_no_overlay | lerobot_v30_overlay | lerobot_v30_subtasks | pi_data_sharable")
 
 
     expectation_class, out_format_class = None, None
     args = argument_parser.parse_args()
+
+    # Compound-task folders -> LeRobot v3.0 with clock alignment + language_persistent subtasks.
+    # See delphi_v3_converter.py (which also has its own CLI with --dry-run etc).
+    if args.in_expectation == "delphi_structured" and args.out_format == "lerobot_v30_subtasks":
+        from delphi_v3_converter import run
+        run(Path(args.source), Path(args.destination), f"local/{Path(args.destination).name}",
+            dry_run=False, limit_per_task=None, fps=30, resize=None, workers=8,
+            alignment_cache=Path("alignment_cache.json"), allow_low_confidence=False,
+            vcodec="h264", crf=23)
+        sys.exit(0)
     match args.in_expectation:
         case "delphi_flat":
             from dataset_processor import V3_Delphi27

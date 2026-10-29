@@ -1,0 +1,3 @@
+{
+ "98078685-bf02-4203-9c96-75735ca72dde": "lag set to median of 6 x 16.5s windowed estimates (-0.08..0.00, r 0.58-0.96); global estimate -0.094 was skewed; half-split -0.01/-0.48 was noise"
+}
